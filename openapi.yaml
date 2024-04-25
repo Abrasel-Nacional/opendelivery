@@ -301,16 +301,16 @@ info:
 
     # └► General Guidelines
 
-      - **Date-Time, Date and Time values**: For properties that require a Date-Time, Date or Time value, use the formats specified in date-time, date and time formats (following the [RFC3339](https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14) specifications)
+      - **Date-Time, Date and Time values**: For properties that require a Date-Time, Date or Time value, use the formats specified in date-time, date and time formats (following the [RFC3339](https://www.rfc-editor.org/rfc/rfc3339#section-5) specifications)
       
       > **ALL DATES MUST BE SENT USING UTC AS DEFAULT.**   
       > (This way it is simpler for the receiving agent to convert to local time.)
 
       For example:
       
-      **2017-05-01T06:30:00Z** for date-time (As defined by date-time - [RFC3339](https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14))\
-      **2017-05-01** for date (As defined by full-date - [RFC3339](https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14))\
-      **08:08:00Z** for time (As defined by full-time - [RFC3339](https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14))
+      **2017-05-01T06:30:00Z** for date-time (As defined by date-time - [RFC3339](https://www.rfc-editor.org/rfc/rfc3339#section-5))\
+      **2017-05-01** for date (As defined by full-date - [RFC3339](https://www.rfc-editor.org/rfc/rfc3339#section-5))\
+      **08:08:00Z** for time (As defined by full-time - [RFC3339](https://www.rfc-editor.org/rfc/rfc3339#section-5))
 
     - **IDs**: Use an id property to identify all unique entities within an entity type. An id is a unique identifier of the entity of that type, but across entities, IDs can overlap.
 
@@ -3157,11 +3157,11 @@ components:
         menuId:
           description: 'The id value of the `Menu` entity correlated to this `Service` entity.'
           type: string
-          format: UUID
+          format: uuid
           example: 'f627ccdc-6789-456f-a782-148538d5035b'
         targetAppId:
           type: 'string'
-          format: UUID
+          format: uuid
           description: 'This field is for situations in which the merchant needs to send different menus for the same `serviceType` to different **Ordering Applications** (this can occur when there is an integration software between the merchant software and the **Ordering Application**). In this case this field must be filled in with the `AppId` of the **OrderingApplication** which will receive this `service` info.'
         serviceArea:
           type: 'object'
@@ -4079,7 +4079,7 @@ components:
           description: 'Order Id shown in the **Ordering Application** interface for the customer.'
         sourceAppId:
           type: 'string'
-          format: UUID
+          format: uuid
           description: 'This field must be filled in with the AppId of the **Ordering Application** that originated the order. This field is to help the applications that will work as a Hub, intermediating the requests from the **Ordering Application** with the **Software Service**.'
         salesChannel:
           type: 'string'
@@ -4740,7 +4740,7 @@ components:
           type: 'array'
           description: "Items that are not in the merchant's inventory."
           items:
-            format: UUID
+            format: uuid
             type: string
           maxItems: 100
         invalidItems:
@@ -4819,7 +4819,7 @@ components:
           description: "Order creation date and time. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
         sourceAppId:
           type: 'string'
-          format: UUID
+          format: uuid
           description: 'This field must be filled in with the AppId of the **Ordering Application** that originated the order. This field is to help the applications that will work as a Hub, intermediating the requests from the **Ordering Application** with the **Software Service**.'
 
     EventMetadataCancel:
@@ -5686,15 +5686,15 @@ components:
           description: "Combined Orders Ids. Informs the logistics service of the Id of other orders already in progress so that the operator can combine these orders. This combination may or may not be accepted by the logistic service, respecting the contracted policies."
           items:
             type: string
-            format: UUID
+            format: uuid
           maxItems: 10  
         sourceAppId:
           type: "string"
-          format: UUID
+          format: uuid
           description: "This field must be filled in with the AppId of the **Ordering Application** that originated the order. This field is to help the applications that will work as a Hub, intermediating the requests from the **Ordering Application** with the **Software Service** and the **Logistics Services**."
         sourceOrderId:
           type: "string"
-          format: UUID
+          format: uuid
           description: "This field must be filled in with the original OrderId generated by the **Ordering Application**. In most cases this property will have the same value as the `orderId` property, since it is already recommended that the order id created by the **Ordering Application** be sent in the `orderId` property. But if the order id created by the **Ordering Application** is not sent in the `orderId` property then it must be entered in this field."
                
     Vehicle:
@@ -5882,7 +5882,7 @@ components:
           description: "Combined Orders Ids. Informs which other orders from the same merchant are being carried by the same delivery person, with the same `deliveryId`."
           items:
             type: string
-            format: UUID
+            format: uuid
 
     DeliveryEvent:
       description: Delivery Event Object.
@@ -6613,7 +6613,7 @@ components:
           description: "Combined Orders Ids. Informs which other orders from the same merchant are being carried by the same delivery person, with the same `deliveryId`."
           items:
             type: string
-            format: UUID
+            format: uuid
         externalTrackingURL:
           type: string
           format: "URI"
