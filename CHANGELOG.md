@@ -23,7 +23,7 @@
 
 #### LOGISTICS changes
 
-- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/logisticOrder/operation/logisticsNewDelivery)
+- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/versions/1.3.0/#tag/logisticOrder/operation/logisticsNewDelivery)
 
   - Fixed the guidance on how to use the combination of orders in a new delivery request.  
     Previously the description was incorrectly quoting the `deliveryId` and `combinedDeliveriesId` fields. This has been corrected to `orderId` and `combinedOrdersId` respectively.  
