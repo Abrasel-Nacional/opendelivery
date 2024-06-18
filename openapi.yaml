@@ -235,7 +235,7 @@ info:
     |[GET  /logistics/delivery/{orderId}](#operation/logisticDetails)|||X|
     |[POST /logistics/availability](#tag/logisticPrice)|||X|
     |[POST /deliveryUpdate (WEBHOOK)](#operation/newLogisticEvent) |X|X||
-    |[POST /logistics/confirmationCode (WEBOHOOK)](#operation/logistictsDeliveryCode) |X|X||
+    |[POST /logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode) |X|X||
 
       ## Parametrizations
 
