@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API
-  version: 'v1.3.0'
+  version: 'v1.4.0'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -42,40 +42,60 @@ info:
       
       Latest Changes:
 
-      ### Version [v1.3.0] - Jan 9, 2024
+      ### Version [v1.4.0] - Jun 18, 2024
 
-      #### ORDERS, MERCHANTS and LOGISTICS change
+      #### SECURITY changes
 
-      - Removed the necessity to enter at least 5 digits for all `latitude` and `longitude` properties.      
+      - Changed the text describing **OAuth2** authentication, making clear the roles of the **Ordering Application** and the **Logistics Service**, since they both use the same logic to provide the access credentials and the token URL.
 
       #### ORDERS changes
 
+      - [GET v1/events:polling ](#operation/pollingEvents)
+      - [POST /orderUpdate (WEBHOOK)](#operation/newEvent)
       - [GET /v1/orders/{orderId}](#operation/ordersDetails)
 
-        - Added a new optional propertie `salesChannel`.  
-          This should be used to inform the channel that originated the order.
+        - Added a new optional propertie `virtualBrand`.  
+          This should be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens).
 
-        - Added a new optional propertie `discounts.sponsorshipValues.discountCode`.  
-          This code should be used to identify a discount coupon used by the user, or an identification code for a marketing campaign, for example.
+      - [POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)
 
-        - Added new optional properties `items.originalPrice` and `items.options.originalPrice` to inform the price of an item before applying markdowns on the list price.
-      
-        - Modified the requirement for the `payments.methods.brand` property. It can now be informed for both prepaid and pending payments.
+        - Added this new endpoint to validate a delivery code provided by the customer.
 
-        - Added the information that the `customer` object is **REQUIRED** when the `type` of the order is `DELIVERY`.
+      - Other ORDERS changes:
+        
+        - The `Order Tracking` menu has been changed to `Order Delivery Info`
+
+        - The places in the documentation where the text referenced the `ORDER_CANCELLATION_REQUESTED` enum have been adjusted to `ORDER_CANCELLATION_REQUEST`. This will not affect any implementation.
+
+        - The diagram of the [Order Cancellation section](#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
+
+        - Changed the text in the section on receiving events to indicate that ACKNOLODGMENT is only required for those working via POLLING.
+          The text has also been changed to indicate that the Ordering Application can work with either of the two services and that POLLING is not required as a mandatory implementation. (Contrary to what was previously understood.)
+
 
       #### LOGISTICS changes
 
-      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
+      - [POST /v1/logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)
 
-        - Fixed the guidance on how to use the combination of orders in a new delivery request.  
-          Previously the description was incorrectly quoting the `deliveryId` and `combinedDeliveriesId` fields. This has been corrected to `orderId` and `combinedOrdersId` respectively.  
-          Nothing has changed on the endpoint itself.
+        - Added this new optional endpoint for the MERCHANT to notify the Logistic Service that an order is ready for pickup. 
+        
+        - Changed the delivery order flow diagram to reflect the new endpoint.
 
-        - Added a new optional propertie `customerPhone` to inform the customer's phone number. 
+      - [POST v1/logistics/delivery](#operation/logisticsNewDelivery)  
+      
+        - Added a new optional propertie `notifyReadyForPickup` to indicate if the **Logistics Service** must be ready to receive a Ready for Pickup request. 
+        - Added a new optional propertie `customerPhoneLocalizer` to indicate the order or customer localizer information to a call center.
+        - Added a new optional propertie `confirmationCodeRequired` to indicate whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery.
+        
+      - [POST v1/logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode)
+        
+        - Added this new Webhook for the MERCHANT to receive the Delivery Confirmation Code informed by the customer from the Logistics Service. 
+      
+      - Other LOGISTICS changes:
 
+        - The `Delivery Tracking` menu has been changed to `Webhooks`
 
-      #### OTHERS changes
+    #### OTHERS changes
 
       - Bug fixes and general corrections in the documentation texts and links.
 
@@ -123,8 +143,9 @@ info:
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
 
-      - [1.4.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
-      - **v1.3.0 - (LATEST RELEASE)**
+      - [1.5.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
+      - **v1.4.0 - (LATEST RELEASE)**
+      - [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
       - [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
       - [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
       - [v1.1.1](https://abrasel-nacional.github.io/docs/versions/1.1.1/)
@@ -189,13 +210,14 @@ info:
     |**[ORDER](#tag/ordersSection)**||||
     |[GET /events:polling ](#operation/pollingEvents)|X|||
     |[POST /events/acknowledgment](#operation/pollingAcknowledgment)|X|||
-    |[POST /orderUpdate](#operation/newEvent)||X||
+    |[POST /orderUpdate (WEBHOOK)](#operation/newEvent)||X||
     |||||
     |[GET /orders/{orderId}](#operation/ordersDetails)|X|||
     |[POST /orders/{orderId}/confirm](#operation/confirmOrder)|X|||
     |[POST /orders/{orderId}/readyForPickup](#operation/orderReady)|X|||
     |[POST /orders/{orderId}/dispatch](#operation/dispatchOrder)|X|||
     |[POST /orders/{orderId}/delivered](#operation/orderDelivered)|X|||
+    |[POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)|X|||
     |||||
     |[POST /orders/{orderId}/requestCancellation](#operation/requestCancellation)|X|||
     |[POST /orders/{orderId}/acceptCancellation](#operation/cancellationAccepted)|X|||
@@ -205,19 +227,21 @@ info:
     |--------------------------------||||
     |**[LOGISTICS](#tag/logisticsSection)**||||
     |[POST /logistics/delivery](#operation/logisticsNewDelivery)|||X|
+    |[POST /logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)|||X|
     |[POST /logistics/orderPicked/{orderId}](#operation/logisticsPicked)|||X|
     |[POST /logistics/finishDelivery/{orderId}](#operation/logisticsFinish)|||X|
     |[POST /logistics/handleProblem/{orderId}](#operation/logisticsProblem)|||X|
     |[POST /logistics/cancel/{orderId}](#operation/logisticsCancel)|||X|
     |[GET  /logistics/delivery/{orderId}](#operation/logisticDetails)|||X|
     |[POST /logistics/availability](#tag/logisticPrice)|||X|
-    |[POST /deliveryUpdate](#operation/newLogisticEvent) |X|X||
+    |[POST /deliveryUpdate (WEBHOOK)](#operation/newLogisticEvent) |X|X||
+    |[POST /logistics/confirmationCode (WEBOHOOK)](#operation/logistictsDeliveryCode) |X|X||
 
       ## Parametrizations
 
       > **IMPORTANT: Before reading this section, it is recommended the reading of the complete documentation, for a better understanding of the different required parameterizations.**
 
-      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery stantard should provide some parameters for the other party to correctly connect to its routes. 
+      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery standard should provide some parameters for the other party to correctly connect to its routes. 
 
       Below is a list of information that each party must provide to the other party for the integrations to occur, i.e., you should consider that the information below will be created as parameters on the system that will call the endpoints.
 
@@ -396,12 +420,14 @@ info:
 
 tags:
   - name: ''
+    description: ' '
     x-displayName: ''
     x-traitTag: true
 
   # Versions
 
   - name: configSection
+    description: ' '
     x-displayName: '└─■ CONFIGURATIONS'
     x-traitTag: true
 
@@ -416,6 +442,7 @@ tags:
   # Authentication
 
   - name: securitySection
+    description: ' '
     x-displayName: '└─■ SECURITY'
     x-traitTag: true
 
@@ -430,6 +457,7 @@ tags:
   # Merchant Tags
 
   - name: merchantSection
+    description: ' '
     x-displayName: '└─■ MERCHANT'
     x-traitTag: true
 
@@ -593,6 +621,7 @@ tags:
   # Orders Tags
 
   - name: ordersSection
+    description: ' '
     x-displayName: '└─■ ORDERS'
     x-traitTag: true
 
@@ -629,12 +658,12 @@ tags:
       **Open Delivery** provides two ways for merchant **Software Service** to be aware of new events:
 
       - **[Polling](#tag/ordersPolling)**: 
-      Receiving events through polling provided by the '**Ordering Application**' is the standard way **Open Delivery** works, and its implementation is mandatory.
+      Receiving events through polling provided by the '**Ordering Application**' is the common way **Open Delivery Order Events** works.
 
       - **[Webhook](#tag/ordersWebhook)**:
         Optionally it is recommended the implementation of a **webhook** by the merchant **Software Service** for the **Ordering Applications** to send new events directly, ensuring a much faster communication.
 
-        > As this implementation is not mandatory, it is recommended that the merchant **Software Service** contacts the **Ordering Application** to find out if it is possible to work with this possibility.
+        > It is recommended that the merchant **Software Service** contacts the **Ordering Application** to know which of these methods are avaliable.
 
       ### Order Details
 
@@ -649,6 +678,7 @@ tags:
       - **[Confirm](#operation/confirmOrder)** receipt of order;
       - Notify that an order is **[ready for pickup](#operation/orderReady)**;
       - Notify that an order has been **[dispatched](#operation/dispatchOrder)**.
+      - Optionally you can notify that the order has been **[delivered](#operation/orderDelivered)**.
 
       Whenever a merchant triggers one of these actions, the '**Ordering Application**' will send a new event to the mechart **Software Service**, acknowledging the new order status within the '**Ordering Application**'.
 
@@ -702,14 +732,16 @@ tags:
             
       ### Acknowledgment Events
 
-      When receiving new events, the **Software Service** should always send acknowledgement so that the **Ordering Application** does not send that same event again;
+      When receiving new events via **Polling**, the **Software Service** should always send acknowledgement so that the **Ordering Application** does not send that same event again;
 
       >**Important recommendations**:
       >
-      > Merchants **Software Service** should make an acknowledgment request for each polling request with results.  
-      > If it receives events that are not used by the itself, it needs to send the acknowledgment of these events anyway so that it is not receiving them every polling again.   
-      > **Open Delivery** recommends that this be the default treatment for all events not yet mapped in the **Software Service** application.  
-      > **Software Services** only needs to send acknowledgment of the event once."
+      > - Merchants **Software Service** should make an acknowledgment request for each polling request with results.  
+      > - If it receives events that are not used by the itself, it needs to send the acknowledgment of these events anyway so that it is not receiving them every polling again.   
+      > - **Open Delivery** recommends that this be the default treatment for all events not yet mapped in the **Software Service** application.  
+      > - **Software Services** only needs to send acknowledgment of the event once.
+
+      **Acknowledgment NOT apply for WEBHOOKS.**
 
   - name: ordersWebhook
     x-displayName: └───● Webhook
@@ -861,7 +893,7 @@ tags:
 
       **Cancellation Handshake**
 
-      When the request occurs the merchant **Software Service** will receive an ORDER_CANCELLATION_REQUESTED event in polling (or via webhook) and must manifest itself through the following endpoints:
+      When the request occurs the merchant **Software Service** will receive an ORDER_CANCELLATION_REQUEST event in polling (or via webhook) and must manifest itself through the following endpoints:
 
       **[/orders/{orderId}/acceptCancellation](#operation/cancellationAccepted)**  
       **[/orders/{orderId}/denyCancellation](#operation/cancellationDenied)**
@@ -871,7 +903,7 @@ tags:
       CANCELLATION_DENIED or CANCELLED
 
   - name: ordersTracking
-    x-displayName: └───● Order Tracking 
+    x-displayName: └───● Order Delivery Info 
     description: |-
 
       This section deals with event updates related to the delivery of the order.
@@ -964,20 +996,14 @@ tags:
 
       > The number of retries possible for the same order is defined by each **Logistic Service**.
 
-  - name: logisticTracking
-    x-displayName: └───● Delivery Tracking
+  - name: logisticsWebhook
+    x-displayName: └───● Webhooks
     description: |-
       Receiving delivery events via Webhook works as follows:
 
        <div align="center">
          <img src="https://abrasel-nacional.github.io/docs/images/delivery_webhook.png" />
        </div>
-
-       ### Delivery Order Event Notification
-       Webhook is sent to notify the merchant **Software Service** (or the **Ordering Application**) that an new order event has happened on the **Logistic Service**.
-
-       The host that implements this webhook, should return an HTTP `200` response code with an empty response body to acknowledge receipt of the webhook event. 
-       If the **Logistic Service** does not receive a `200` acknowledgement response, than the webhook event will be resent based on the **Logistic Service** policies.
 
        ### Webhook Headers
        **Open Delivery** will include security headers for all requests made to the merchant **Software Service** webhook URL.
@@ -1061,7 +1087,7 @@ x-tagGroups:
     tags:
       - logisticOverview
       - logisticOrder
-      - logisticTracking
+      - logisticsWebhook
       - logisticDetails
       - logisticPrice
   - name: '_______________________________________'
@@ -1781,6 +1807,62 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /v1/orders/{orderId}/validateCode:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
+        - name: deliveryCode
+          in: 'query'
+          required: true
+          schema:
+            type: string
+            description: 'The Delivery Coonfirmation Code to be validated.'            
+      tags:
+        - 'ordersTracking'
+      operationId: 'orderValidateDelivery'
+      summary: '[NEW] Validate Delivery Code'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        This endpoint aims to validate a delivery code provided by the consumer, so that the delivery person knows whether the order is being delivered to the correct person or not.
+
+        Unlike the other endpoints, this path should be handled **SYNCHRONOUSLY** and will not generate new events in Polling or Webhook.
+
+        The endpoint should return:  
+
+        - HTTP `200` response code if the Delivery Code is **valid**.  
+        - HTTP `400` responde code if the Delivery Code is **invalid**. In this case you must inform the cause in the `title` propertie.  
+
+        <br /><br />
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
+
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
+        <div align='center'>
+          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
+        </div>
+      responses:
+        "200":
+          description: Confirmation Code is correct. You can proceed with the delivery.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DeliveryConfirmationCode"
+        
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+          
+        
+
   /v1/orders/{orderId}/delivered:
     post:
       parameters:
@@ -1804,7 +1886,7 @@ paths:
 
         Important: This endpoint is not mandatory and should be sent only if the **Ordering Application** is able to receive this request and only in cases where the order logistics service is provided by the Merchant and not the Marketplace.
 
-        > To check whether or not it is required to call this endpoint, check the `sendDelivered` field in the endpoint: 
+        > To check whether or not it is required to call this endpoint, check the `sendDelivered` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
 
         <br /><br />
         <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
@@ -1847,7 +1929,7 @@ paths:
       tags:
         - 'ordersTracking'
       operationId: 'orderTracking'
-      summary: '[NEW] Send Delivery Updates'
+      summary: 'Send Delivery Updates'
       security:
         - OAuth2: [od.all]
       description: |-
@@ -1855,6 +1937,8 @@ paths:
 
         This endpoint should be used when the delivery is the responsibility of the `Merchant`, so the `Software Service` should send the delivery updates to the `Ordering Application`.
        
+        > To check whether or not it is required to call this endpoint, check the `sendTracking` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
+        
         <br /><br />
         <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
 
@@ -1977,6 +2061,43 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
 
+  /v1/logistics/readyForPickup/{orderId}:
+    post:
+      operationId: "logisticsReadyForPickup"
+      security:
+        - OAuth2: [od.all]
+      parameters:
+        - name: orderId
+          in: "path"
+          required: true
+          schema:
+            type: string
+            format: "uuid"
+            description: "The orderId generated by the **`Ordering Application`**."
+            example: "52122852-6626-11ed-9022-0242ac120002"
+      tags:
+        - "logisticOrder"
+      summary: "Inform Ready for Pickup"
+      description: |-
+        Inform the **Logistic Service** that the order is ready for pickup.
+
+        > **This is a OPTIONAL endpoint and should only be requested if the `notifyReadyForPickup` field has been set to `true` when sending the delivery request via the [POST /logistics/delivery](#operation/logisticsNewDelivery) endpoint.**
+      responses:
+        "200":
+          description: "Order is ready for pickup."
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: '#/components/responses/Unauthorized'   
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
   /v1/logistics/orderPicked/{orderId}:
     post:
       operationId: "logisticsPicked"
@@ -1998,8 +2119,11 @@ paths:
               $ref: "#/components/schemas/DeliveryOrderPicked"
       tags:
         - "logisticOrder"
-      summary: "Inform order pickup"
-      description: "Inform the **Logistic Service** that the order was picked by delivery person at Merchant"
+      summary: "Inform Order Pickup"
+      description: |- 
+        Inform the **Logistic Service** that the order was picked by delivery person at Merchant
+
+        > **This is a OPTIONAL endpoint and should only be requested if the `notifyPickup` field has been set to `true` when sending the delivery request via the [POST /logistics/delivery](#operation/logisticsNewDelivery) endpoint.**
       responses:
         "200":
           description: "Order pickup has been confirmed."
@@ -2016,6 +2140,45 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
 
+          /v1/logistics/orderPicked/{orderId}:
+            post:
+              operationId: "logisticsPicked"
+              security:
+                - OAuth2: [od.all]
+              parameters:
+                - name: orderId
+                  in: "path"
+                  required: true
+                  schema:
+                    type: string
+                    format: "uuid"
+                    description: "The orderId generated by the **`Ordering Application`**."
+                    example: "52122852-6626-11ed-9022-0242ac120002"
+              requestBody:
+                content:
+                  "application/json":
+                    schema:
+                      $ref: "#/components/schemas/DeliveryOrderPicked"
+              tags:
+                - "logisticOrder"
+              summary: "Inform order pickup"
+              description: "Inform the **Logistic Service** that the order was picked by delivery person at Merchant"
+              responses:
+                "200":
+                  description: "Order pickup has been confirmed."
+                "400":
+                  $ref: "#/components/responses/BadRequest"
+                "401":
+                  $ref: '#/components/responses/Unauthorized'   
+                "403":
+                  $ref: "#/components/responses/AccessDenied"
+                "404":
+                  $ref: "#/components/responses/NotFound"
+                "422":
+                  $ref: "#/components/responses/UnprocessableEntity"
+                "503":
+                  $ref: "#/components/responses/ServiceUnavailable"
+                          
   /v1/logistics/finishDelivery/{orderId}:
     post:
       operationId: "logisticsFinish"
@@ -2037,8 +2200,11 @@ paths:
               $ref: "#/components/schemas/DeliveryOrderFinish"
       tags:
         - "logisticOrder"
-      summary: "Finish delivery"
-      description: "Indicates the completion of a delivery order"
+      summary: "Finish Delivery"
+      description: |- 
+        Indicates the completion of a delivery order.
+
+        > **This is a OPTIONAL endpoint andshould only be requested if the `notifyConclusion` field has been set to `true` when sending the delivery request via the [POST /logistics/delivery](#operation/logisticsNewDelivery) endpoint.**
       responses:
         "200":
           description: "Delivery completion has been confirmed. "
@@ -2300,10 +2466,17 @@ x-webhooks:
             type: "string"
             format: "SHA256"
             description: "SHA256 hash of the request body, using the client secret as the key"
-      summary: Tracking event webhook
-      description: Information about a new event in the systems
+      summary: Tracking Event Webhook
+      description: |-
+        
+        ### Delivery Order Event Notification
+        Webhook is sent to notify the merchant **Software Service** (or the **Ordering Application**) that an new order event has happened on the **Logistic Service**.
+ 
+        The host that implements this webhook, should return an HTTP `200` response code with an empty response body to acknowledge receipt of the webhook event. 
+        If the **Logistic Service** does not receive a `200` acknowledgement response, than the webhook event will be resent based on the **Logistic Service** policies.
+ 
       tags:
-        - logisticTracking
+        - logisticsWebhook
       requestBody:
         $ref: "#/components/requestBodies/DeliveryEvent"
       responses:
@@ -2318,6 +2491,67 @@ x-webhooks:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
 
+  /v1/confirmationCode:
+    post:
+      operationId: logistictsDeliveryCode
+      security: 
+        -  {}
+      parameters:
+        - in: "header"
+          name: "X-App-Id"
+          required: true
+          schema:
+            type: "string"
+            format: "UUID"
+            description: "An unique Identificator of the **`Logistic Service`**. The same ID must be sent to all `**Software Service**s` and `**Ordering Applications**` that implements this webhook."
+        - in: "header"
+          name: "X-App-MerchantId"
+          required: true
+          schema:
+            $ref: "#/components/schemas/Merchant/properties/id"
+            description: "An unique Identificator of the Merchant "
+        - in: "header"
+          name: "X-App-Signature"
+          required: true
+          schema:
+            type: "string"
+            format: "SHA256"
+            description: "SHA256 hash of the request body, using the client secret as the key"
+      summary: Delivery Code Webhook
+      description: |- 
+       
+        ### Delivery Confirmation Code Notification
+        Webhook is sent to notify the merchant **Software Service** (or the **Ordering Application**) of the Delivery Code, informed by the customer. 
+        
+        With this code, the **Software Service** (or the **Ordering Application**) needs to access the Ordering Application confirmation process and return if the code is valid or not.
+
+        The host that implements this webhook, should return:  
+
+        - HTTP `200` response code if the Delivery Code is **valid**.  
+        - HTTP `400` responde code if the Delivery Code is **invalid**. In this case you must inform the cause in the `title` propertie.  
+
+      tags:
+        - logisticsWebhook
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DeliveryConfirmationCode"
+      responses:
+        "200":
+          description: Confirmation Code is correct. You can proceed with the delivery.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DeliveryConfirmationCode"
+        
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        
 #############################################################
 
 components:
@@ -2326,15 +2560,22 @@ components:
     OAuth2:
       type: oauth2
       description:
-        "Oauth2 should be used for all API calls from the **`Software Service`** to the **`Ordering Application`**.\n
+        "OAuth2 should be the standard authentication method between parties.  
+
+        - For the **ORDERS** and **MERCHANT** endpoints, the **Ordering Application** is responsible for credentials and token generation.  
+
+        - For the **LOGISTICS** endpoints, the **Logistics Service** will be responsible for managing these infos.  
+        
+        > Webhooks are an exception and have their own authentication method, not using OAuth.
+
 
         As of the time of this release only one scope will be used for all endpoints: `od.all`.
 
         ### Generating a Client Credentials Token
 
-        To generate a client credentials token, the merchant **Software Service** must retrieve the **clientId** and **clientSecret** from a **Ordering Application** Company and access the [/oauth/token](#operation/getToken) endpoint.
+        To generate a client credentials token, the merchant **Software Service** must retrieve the **clientId** and **clientSecret** from a **Ordering Application** or **Logistics Service** company and access the [/oauth/token](#operation/getToken) endpoint.
 
-        > The **Ordering Application** MUST provide one `clientId` and `clientSecret` credentials for each individual merchant it will work with, even if these merchants use the same **Software Service**.
+        > The **Ordering Application** or **Logistics Service** MUST provide one `clientId` and `clientSecret` credentials for each individual merchant it will work with, even if these merchants use the same **Software Service**.
 
         ### Usage
 
@@ -2389,13 +2630,6 @@ components:
             items:
               $ref: '#/components/schemas/AckEvents'
             maxItems: 100
-
-    ConfirmedOrder:
-      description: 'Order confirmation.'
-      content:
-        'application/json':
-          schema:
-            $ref: '#/components/schemas/OrderConfirmed'
 
     CancelRequest:
       required: true
@@ -2454,14 +2688,8 @@ components:
             $ref: "#/components/schemas/DeliveryCancel"
 
   responses:
-    OK:
-      description: 'Request has been processed.'
     Accepted:
       description: 'Request has been accepted for processing.'
-    Created:
-      description: 'Resource has been created.'
-    NoContent:
-      description: 'Request has been processed.'
     BadRequest:
       description: 'Bad Request'
       content:
@@ -4083,7 +4311,10 @@ components:
           description: 'This field must be filled in with the AppId of the **Ordering Application** that originated the order. This field is to help the applications that will work as a Hub, intermediating the requests from the **Ordering Application** with the **Software Service**.'
         salesChannel:
           type: 'string'
-          description: 'You can indicate through which sales channel this order originated.'          
+          description: 'You can indicate through which sales channel this order originated.'  
+        virtualBrand:
+          type: 'string'
+          description: 'This field can be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens). It is important to note that the Ordering Application or Software Hub must know this Id beforehand.'          
         createdAt:
           type: 'string'
           format: date-time
@@ -4509,7 +4740,10 @@ components:
               type: 'string'
             phone:
               type: 'object'
-              description: "Customer's phone. Here you can enter the customer's phone number directly (provided that the customer has given permission for this data to be shared, according to local policies) or another phone number (such as the ordering application's call center phone number) where the merchant can communicate about order issues that affect the customer (such as health issues)."
+              description: |- 
+                Customer's phone. Here you can enter the customer's phone number directly (provided that the customer has given permission for this data to be shared, according to local policies) or another phone number (such as the ordering application's call center phone number) where the merchant can communicate about order issues that affect the customer (such as health issues).
+
+                **Please note**: The telephone number is considered an identification field and therefore the customer's advance consent is required.  
               required: ['number']
               properties:
                 number:
@@ -4779,7 +5013,7 @@ components:
           PICKUP_AREA_ASSIGNED: '#/components/schemas/EventMetadataPickup'
           DELIVERED: '#/components/schemas/EventMetadata'
           CONCLUDED: '#/components/schemas/EventMetadata'
-          ORDER_CANCELLATION_REQUESTED: '#/components/schemas/EventMetadataCancel'
+          ORDER_CANCELLATION_REQUEST: '#/components/schemas/EventMetadataCancel'
           CANCELLATION_REQUESTED: '#/components/schemas/EventMetadataCancel'
           CANCELLATION_REQUEST_DENIED: '#/components/schemas/EventMetadataCancel'
           CANCELLED: '#/components/schemas/EventMetadataCancel'
@@ -4821,6 +5055,9 @@ components:
           type: 'string'
           format: uuid
           description: 'This field must be filled in with the AppId of the **Ordering Application** that originated the order. This field is to help the applications that will work as a Hub, intermediating the requests from the **Ordering Application** with the **Software Service**.'
+        virtualBrand:
+          type: 'string'
+          description: 'This field can be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens). It is important to note that the Ordering Application or Software Hub must know this Id beforehand.'         
 
     EventMetadataCancel:
       description: Metadata
@@ -5555,6 +5792,9 @@ components:
                 instructions:
                   type: string
                   description: "Any instructions that may help the delivery."
+        notifyReadyForPickup:
+          type: boolean
+          description: "Inform whether the **`Logistic Service`** to wait for a notification that the order was ready for been picked up. This notification happens via the endpoint: [POST /logistics/orderPicked/{orderId}](#operation/logisticsReadyForPicked)"
         notifyPickup:
           type: boolean
           description: "Inform whether the **`Logistic Service`** to wait for a notification that the order has actually been picked. This notification happens via the endpoint: [POST /logistics/orderPicked/{orderId}](#operation/logisticsPicked)"
@@ -5567,6 +5807,9 @@ components:
         canCombine:
           type: boolean
           description: "Inform whether the **`Logistic Service`** can combine this order with other orders in the same delivery."
+        confirmationCodeRequired:
+          type: boolean
+          description: " Inform whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery."          
         deliveryAddress:
           description: "Delivery Address"
           allOf:
@@ -5582,9 +5825,12 @@ components:
         customerPhone:
           type: "string"
           description: |-
-            Customer's telephone number. 
+            Customer's phone. Here you can enter the customer's phone number directly (provided that the customer has given permission for this data to be shared, according to local policies) or another phone number (such as the ordering application's call center phone number).
 
             **Please note**: The telephone number is considered an identification field and therefore the customer's advance consent is required.       
+        customerPhoneLocalizer:
+          type: string
+          description: "This propertie should be used as a complementary field to the `customerPhone` field in cases where a generic phone number is provided, such as a call center, and it is necessary to provide some order or customer identification."
         vehicle:
           description: "Vehicle Info. informs which vehicle options are to be used for delivery. More than one can be informed, but the logistics service must choose only one of the types of vehicles informed."
           allOf:
@@ -6640,6 +6886,19 @@ components:
           format: date-time
           description: "Date and time when the delivery finished. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
 
+    DeliveryConfirmationCode:
+      description: Delivery Confirmation Object.
+      type: object
+      required: [orderId, deliveryCode]
+      properties:
+        orderId:
+          type: "string"
+          format: "uuid"
+          description: "The orderId informed in the Delivery Request."
+          example: "52122852-6626-11ed-9022-0242ac120002"
+        deliveryCode:
+          type: string
+          description: "Delivery confirmation code provided by the customer."       
   examples:
     tokenExample:
       summary: New Token

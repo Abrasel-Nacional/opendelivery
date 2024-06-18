@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Open Delivery Documentation</title>
+    <!-- needed for adaptive design -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+
+    <!--
+    ReDoc doesn't change outer page styles
+    -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <redoc spec-url='./openapi.yaml' path-in-middle-panel='true' hide-hostname='true' expand-responses='200,201,202,203,204' no-auto-auth='true' hide-hostname='true', show-webhook-verb='true' theme='{"spacing": {"sectionVertical": "20"}, "sidebar":{"backgroundColor":"#f0f3f0", "activeTextColor":"#003300"}}'></redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Open Delivery API (Release Candidate)
-  version: 'v1.4.0-rc.5'
+  title: Open Delivery API
+  version: 'v1.4.0'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -14,14 +14,6 @@ info:
 
   description: |-
     # ► --- OPEN DELIVERY --- ◄
-
-    # └► 'RELEASE CANDIDATE' VERSION WARNING
-    > **This version includes the EVOLUTIONS and IMPROVMENTES that are currently being discussed and will integrate the release version in the future. With this version the companies already using OPEN DELIVERY standards can keep up to date with the changes and already be prepared for future releases.**
-
-    > **THIS DOCUMENTATION VERSION CONTAINS INFORMATION THAT HAS NOT YET BEEN OFFICIALLY RELEASED AND IS STILL IN RELEASE CANDIDATE STAGE. THE INFORMATION CONTAINED HERE IS STILL UNDERGOING TESTING AND VALIDATION AND MAY BE SUBJECT TO CHANGE (SEE THE [CHANGELOGS](#section/Table-Of-Contents) SECTION FOR THE LATEST CHANGES).**
-
-    > **TO VIEW THE OFFICIAL RELEASE (CURRENTLY VERSION V1.0.1) FOLLOW THIS [LINK](https://abrasel-nacional.github.io/docs/).** 
-
 
     # └► Introduction
       **Open Delivery** proposes to solve the challenge of organizing the flow of information between merchants and **Ordering Applications**, establishing a single communication standard for all, through a set of REST APIs.
@@ -48,16 +40,49 @@ info:
 
     # └► Changelog
       
-    Latest Changes:
+      Latest Changes:
 
-      ### Version [v1.4.0-rc.4] - Jun 05, 2024
-    
+      ### Version [v1.3.0] - Jan 9, 2024
 
-      ### Version [v1.4.0-rc.0] - Jan 18, 2024
+      #### COMMON changes
 
-      - Initial release.
+      - Removed the necessity to enter at least 5 digits for all `latitude` and `longitude` properties.      
 
+      #### ORDERS changes
 
+      - [GET /v1/orders/{orderId}](#operation/ordersDetails)
+
+        - Added a new optional propertie `salesChannel`.  
+          This should be used to inform the channel that originated the order.
+
+        - Added a new optional propertie `discounts.sponsorshipValues.discountCode`.  
+          This code should be used to identify a discount coupon used by the user, or an identification code for a marketing campaign, for example.
+
+        - Added new optional properties `items.originalPrice` and `items.options.originalPrice` to inform the price of an item before applying markdowns on the list price.
+      
+        - Modified the requirement for the `payments.methods.brand` property. It can now be informed for both prepaid and pending payments.
+
+        - Added the information that the `customer` object is **REQUIRED** when the `type` of the order is `DELIVERY`.
+
+      #### LOGISTICS changes
+
+      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
+
+        - Fixed the guidance on how to use the combination of orders in a new delivery request.  
+          Previously the description was incorrectly quoting the `deliveryId` and `combinedDeliveriesId` fields. This has been corrected to `orderId` and `combinedOrdersId` respectively.  
+          Nothing has changed on the endpoint itself.
+
+        - Added a new optional propertie `customerPhone` to inform the customer's phone number. 
+
+      #### OTHERS changes
+
+      - Bug fixes and general corrections in the documentation texts and links.
+
+      --------------------------------------
+      
+      > To see previous versions changes, access the full [CHANGELOG](https://abrasel-nacional.github.io/docs/CHANGELOG).  
+
+     
     # └► Issues and Suggestions
 
     In case of doubts, suggestions, improvements, problems or any information regarding the documentation presented here, access the project's Github repo and open a new issue.
@@ -96,8 +121,12 @@ info:
 
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
-      - **1.3.0-rc.X - RELEASE CANDIDATE\***
-      - [v1.2.0 - (Latest Release)](https://abrasel-nacional.github.io/docs/)
+
+      - [1.5.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
+      - **v1.4.0 - (LATEST RELEASE)**
+      - [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
+      - [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
+      - [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
       - [v1.1.1](https://abrasel-nacional.github.io/docs/versions/1.1.1/)
       - [v1.1.0](https://abrasel-nacional.github.io/docs/versions/1.1.0/)
       - [v1.0.1](https://abrasel-nacional.github.io/docs/versions/1.0.1/)
@@ -188,7 +217,7 @@ info:
 
       > **IMPORTANT: Before reading this section, it is recommended the reading of the complete documentation, for a better understanding of the different required parameterizations.**
 
-      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery standard should provide some parameters for the other party to correctly connect to its routes. 
+      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery stantard should provide some parameters for the other party to correctly connect to its routes. 
 
       Below is a list of information that each party must provide to the other party for the integrations to occur, i.e., you should consider that the information below will be created as parameters on the system that will call the endpoints.
 
@@ -420,7 +449,7 @@ tags:
       The merchant must 'choose' a **Software Service**, which will be responsible for exposing its data on the **[GET /v1/merchant](#operation/getMerchant)** endpoint. This endpoint will be used by the ordering system to get the updated merchant infos (BasicInfos, Services and Menus).
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/menu_flow.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/menu_flow.png" />
       </div>
 
       The **Ordering Application** can check for merchant updates in the following ways:    
@@ -441,7 +470,7 @@ tags:
       The following diagram shows how Basic Info, Service, and Menu properties represent a single merchant:
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/merchant_structure.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/merchant_structure.png" />
       </div>
 
       The following schema lists the properties for the `Merchant` model:
@@ -465,7 +494,7 @@ tags:
       `Service` is expected to change.
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/merchant_services.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/merchant_services.png" />
       </div>
 
       The following schema lists the properties for the `Service` type: 
@@ -478,7 +507,7 @@ tags:
       In order to be displayed by the **Ordering Application**, a `Menu` needs to be linked to a `Service` through the `menuId` property.
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/merchant_menus.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/merchant_menus.png" />
       </div>
 
       Data in a `Menu` entity is expected to change.
@@ -582,7 +611,7 @@ tags:
       ### Order Events
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/order_life_cicle.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/order_life_cicle.png" />
         <br />
         <br />
         <br />
@@ -593,7 +622,7 @@ tags:
       ### Understanding the Order Flow
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/order_integrations2.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/order_integrations2.png" />
       </div>
 
       The order flow has the following Macro steps:
@@ -645,7 +674,7 @@ tags:
       Receiving events via Polling works as follows:
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/polling.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/polling.png" />
       </div>
 
       ### Query new order events
@@ -697,7 +726,7 @@ tags:
       Receiving events via Webhook works as follows:
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/webhook.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/webhook.png" />
       </div>
 
       ### Order Event Notification
@@ -779,7 +808,7 @@ tags:
       ### **Software Service** (Merchant):
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/software_cancel_request.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/software_cancel_request.png" />
       </div>
 
       If the merchant wants to cancel an order, it must make a **POST [/orders/{orderId}/requestCancellation](#operation/requestCancellation)** request.
@@ -821,7 +850,7 @@ tags:
       ### **Ordering Application**
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/orderingApp_cancel_request.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/orderingApp_cancel_request.png" />
       </div>
 
       Cancellation by **Ordering Application** can happen by:
@@ -883,7 +912,7 @@ tags:
       > The Open Delivery logistics API only handles communications between the merchant software (or **Ordering Application**) and the software of the logistics operator. Communications and interfaces with the deliverers at the end are not covered in this documentation, leaving it up to the logistics companies to perform this interaction.
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/logisticsFlow.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/logisticsFlow.png" />
       </div>
 
       The endpoints provided here, cover the following functionalities:
@@ -908,7 +937,7 @@ tags:
       This overview summarizes the **Open Delivery** delivery ordering flow and how it interacts with the requester (merchant **Software Services** or **Ordering Applications**) and the **Logistic Services**.
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/logisticsOrderFlow.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/logisticsOrderFlow.png" />
       </div>
 
       > The `PICKUP_ONGOING`, `DELIVERY_ONGOING` and `RETURNING_TO_MERCHANT` events are events that occur while the delivery person is on the move, so these events can be sent repeatedly in order to update the delivery person's location. The interval at which these events are sent is defined by each **Logistic Service**. 
@@ -924,7 +953,7 @@ tags:
       When requesting for a new delivery, you need to inform the `orderId` of the ongoing deliveries in the `combinedOrdersIds` field of the new request.
 
       <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/logisticsCombined.png" />
+        <img src="https://abrasel-nacional.github.io/docs/images/logisticsCombined.png" />
       </div>
 
       > This combination will be subject to acceptance by the **Logistic Service**. 
@@ -949,7 +978,7 @@ tags:
       Receiving delivery events via Webhook works as follows:
 
        <div align="center">
-         <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/delivery_webhook.png" />
+         <img src="https://abrasel-nacional.github.io/docs/images/delivery_webhook.png" />
        </div>
 
        ### Webhook Headers
@@ -1067,7 +1096,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1095,7 +1124,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETOA_SS.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETOA_SS.png" />
         </div>
       responses:
         '200':
@@ -1125,7 +1154,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       requestBody:
         $ref: '#/components/requestBodies/Token'
@@ -1165,7 +1194,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETOA_SS.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETOA_SS.png" />
         </div>
       responses:
         '200':
@@ -1218,7 +1247,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1253,7 +1282,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPUTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPUTSS_OA.png" />
         </div>
       parameters:
         - in: 'query'
@@ -1370,7 +1399,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1410,7 +1439,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '202':
@@ -1449,7 +1478,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionGETSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1503,7 +1532,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '202':
@@ -1549,7 +1578,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '202':
@@ -1593,7 +1622,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1641,7 +1670,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '200':
@@ -1687,7 +1716,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '202':
@@ -1736,7 +1765,7 @@ paths:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       responses:
         '202':
@@ -1840,7 +1869,7 @@ paths:
 
         <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
         <div align='center'>
-          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
+          <img src='https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png' />
         </div>
       responses:
         '202':
@@ -1891,7 +1920,7 @@ paths:
 
         <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
         <div align='center'>
-          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
+          <img src='https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png' />
         </div>
       responses:
         '202':
@@ -2195,7 +2224,7 @@ paths:
 
         > Since there are other ways to solve delivery problems, such as via telephone or messaging applications, the implementation of this endpoint is optional, and the **Logistic Service** will inform the **Software Service** (or **Ordering Application**) of the need to use it.
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/logisticsProblem.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/logisticsProblem.png" />
         </div>
       responses:
         "200":
@@ -2241,7 +2270,7 @@ paths:
         > If the order being cancelled is in a combined delivery, when cancelling, the order informed will be unlinked from the delivery, not interrupting the progress of the other orders in the same delivery.
 
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/logisticsCancel.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/logisticsCancel.png" />
         </div>
       responses:
         "202":
@@ -2296,7 +2325,7 @@ x-webhooks:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
         </div>
       operationId: menuUpdated
       tags:
@@ -2362,7 +2391,7 @@ x-webhooks:
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTOA_SS.png" />
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTOA_SS.png" />
         </div>
       tags:
         - ordersWebhook

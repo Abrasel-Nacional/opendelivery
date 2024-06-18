@@ -1,4 +1,61 @@
 # Changelog
+### Version [v1.4.0] - Jun 18, 2024
+
+#### SECURITY changes
+
+- Changed the text describing **OAuth2** authentication, making clear the roles of the **Ordering Application** and the **Logistics Service**, since they both use the same logic to provide the access credentials and the token URL.
+
+#### ORDERS changes
+
+- [GET v1/events:polling ](#operation/pollingEvents)
+- [POST /orderUpdate (WEBHOOK)](#operation/newEvent)
+- [GET /v1/orders/{orderId}](#operation/ordersDetails)
+
+  - Added a new optional propertie `virtualBrand`.  
+    This should be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens).
+
+- [POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)
+
+  - Added this new endpoint to validate a delivery code provided by the customer.
+
+- Other ORDERS changes:
+  
+  - The `Order Tracking` menu has been changed to `Order Delivery Info`
+
+  - The places in the documentation where the text referenced the `ORDER_CANCELLATION_REQUESTED` enum have been adjusted to `ORDER_CANCELLATION_REQUEST`. This will not affect any implementation.
+
+  - The diagram of the [Order Cancellation section](#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
+
+  - Changed the text in the section on receiving events to indicate that ACKNOLODGMENT is only required for those working via POLLING.
+    The text has also been changed to indicate that the Ordering Application can work with either of the two services and that POLLING is not required as a mandatory implementation. (Contrary to what was previously understood.)
+
+
+#### LOGISTICS changes
+
+- [POST /v1/logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)
+
+  - Added this new optional endpoint for the MERCHANT to notify the Logistic Service that an order is ready for pickup. 
+  
+  - Changed the delivery order flow diagram to reflect the new endpoint.
+
+- [POST v1/logistics/delivery](#operation/logisticsNewDelivery)  
+
+  - Added a new optional propertie `notifyReadyForPickup` to indicate if the **Logistics Service** must be ready to receive a Ready for Pickup request. 
+  - Added a new optional propertie `customerPhoneLocalizer` to indicate the order or customer localizer information to a call center.
+  - Added a new optional propertie `confirmationCodeRequired` to indicate whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery.
+  
+- [POST v1/logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode)
+  
+  - Added this new Webhook for the MERCHANT to receive the Delivery Confirmation Code informed by the customer from the Logistics Service. 
+
+- Other LOGISTICS changes:
+
+  - The `Delivery Tracking` menu has been changed to `Webhooks`
+
+#### OTHERS changes
+
+- Bug fixes and general corrections in the documentation texts and links.
+
 ### Version [v1.3.0] - Jan 9, 2024
 
 #### ORDERS, MERCHANTS and LOGISTICS change
