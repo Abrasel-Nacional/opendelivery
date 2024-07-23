@@ -66,11 +66,11 @@ This section has some tools to help you implement the Open Delivery API.
 
 **SCHEMA VALIDATORS**
 
-> [Open Delivery - API Schema Validator (by Programmers IT)](https://programmersit.github.io/opendelivery-api-schema-validator/)     
+> [Open Delivery - API Schema Validator (by Programmers IT)](https://abrasel-nacional.github.io/opendelivery-api-schema-validator/) 
 > Tool for comparing a JSON file with Open Delivery schemas.
 
 **MERCHANT RELATED TOOLS**
-> [Open Delivery - Menu Generator (by Programmers IT)](https://programmersit.github.io/opendelivery-menu-generator/)  
+> [Open Delivery - Menu Generator (by Programmers IT)](https://abrasel-nacional.github.io/opendelivery-menu-generator/)  
 > Tool for graphical visualization of the different fields and entities that compose the Merchant object.
 
 ## License
