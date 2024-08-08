@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API (Release Candidate)
-  version: 'v1.4.0-rc.5'
+  version: 'v1.5.0-rc.1'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -50,10 +50,23 @@ info:
       
     Latest Changes:
 
-      ### Version [v1.4.0-rc.4] - Jun 05, 2024
+      ### Version [v1.5.0-rc.1] - Jul 22, 2024
     
+      #### MERCHANT changes
 
-      ### Version [v1.4.0-rc.0] - Jan 18, 2024
+      - **WEBP** format is now accepted for images.
+      
+      - [GET /merchant](#operation/getMerchant)
+        - Added `images` propetie in `items` entity
+
+          The `images` propetie is an array that holds images of the item, intended for use when size variations of the image are needed.
+          If the `images` array contains any values, it must be considered, and the preexisting `image` field must be ignored.
+          If the `images` array is empty, the preexisting `image` field must be considered.
+
+          The images in the array must indicate a `type` beetwen `main` or `thumb`.
+      
+
+      ### Version [v1.4.0-rc.0] - Jaun 18, 2024
 
       - Initial release.
 
@@ -96,8 +109,12 @@ info:
 
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
-      - **1.3.0-rc.X - RELEASE CANDIDATE\***
-      - [v1.2.0 - (Latest Release)](https://abrasel-nacional.github.io/docs/)
+
+      - **1.5.0-rc.X - RELEASE CANDIDATE\***
+      - [v1.4.0](https://abrasel-nacional.github.io/docs/versions/v1.4.0/)
+      - [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
+      - [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
+      - [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
       - [v1.1.1](https://abrasel-nacional.github.io/docs/versions/1.1.1/)
       - [v1.1.0](https://abrasel-nacional.github.io/docs/versions/1.1.0/)
       - [v1.0.1](https://abrasel-nacional.github.io/docs/versions/1.0.1/)
@@ -3584,9 +3601,22 @@ components:
           example: 'AVAILABLE'
         image:
           type: 'object'
-          description: 'Image of the item'
+          description: |-
+            Image of the item. This field should be used when there is only one image for the item without size variations.  
+            It must **be considered** only if the `images` array **is empty**.  
+            If `images` **contains any value**, this field must **be ignored** even if it is filled.
           allOf:
             - $ref: '#/components/schemas/Image'
+        images:
+           type: 'array'
+           maxItems: 2
+           items:
+             allOf:
+             - $ref: '#/components/schemas/ImageWithType'
+           description: |-
+             Array of images of the item. This field should be used when you need size variations for the images.    
+             If this array **contains any value**, it must **be considered** and the `image` field must be ignored.   
+             If this array is **empty**, the `image` field must be considered.
         nutritionalInfo:
           type: 'object'
           description: 'Nutrition information for the dish.'
@@ -5636,7 +5666,7 @@ components:
             "URL pointing to an image of the merchant logo.\n\n Image requirements:
             \n - Hosted on a secure connection (SSL).
             \n - File size must be less than 10MB.
-            \n - Image must be in JPEG, PNG or GIF format.
+            \n - Image must be in JPEG, PNG, GIF or WEBP format.
             \n - Both width and height must be between 320px and 1144px.
             \n\n
             > It is expected that the images referenced in the URL are downloaded from the server that is making the request, because the URL may no longer be valid after a period of time."
@@ -5646,6 +5676,32 @@ components:
           format: 'CRC32'
           description: 'CRC-32 of the image file. This field can be used to check for changes in the image file.'
           example: '96b41025'
+
+    ImageWithType:
+      description: Image Object
+      type: object
+      required: ['URL']
+      properties:
+        URL:
+          type: 'string'
+          format: 'uri'
+          description:
+            "URL pointing to an image of the merchant logo.\n\n Image requirements:
+            \n - Hosted on a secure connection (SSL).
+            \n - File size must be less than 10MB.
+            \n - Image must be in JPEG, PNG, GIF or WEBP format.
+            \n\n
+            > It is expected that the images referenced in the URL are downloaded from the server that is making the request, because the URL may no longer be valid after a period of time."
+          example: 'https://food-company.com/image.jpg'
+        CRC-32:
+          type: string
+          format: 'CRC32'
+          description: 'CRC-32 of the image file. This field can be used to check for changes in the image file.'
+          example: '96b41025'          
+        type:
+          type: 'string'
+          enum: ['main', 'thumb']
+          description: 'The type of the image. The `main` type is generally used for larger images, such as in the item detail, while the `thumb` type is for smaller images, typically used in the menu listing.'
 
     MerchantAPIInfo:
       type: 'object'
