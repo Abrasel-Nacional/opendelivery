@@ -5680,7 +5680,7 @@ components:
     ImageWithType:
       description: Image Object
       type: object
-      required: ['URL']
+      required: ['URL', 'type']
       properties:
         URL:
           type: 'string'
