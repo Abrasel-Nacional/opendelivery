@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API (Release Candidate)
-  version: 'v1.5.0-rc.1'
+  version: 'v1.5.0-rc.3'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -1369,9 +1369,10 @@ paths:
               **Event Types definitions:**
               > `CREATED` : Order created.\
               > `CONFIRMED` : Order confirmed.\
+              > `PREPARATION_REQUESTED` : Informs the **Software Service** that they can start prepare the order.\
               > `READY_FOR_PICKUP`: Order ready for pickup by the customer or delivery person.\
               > `DISPATCHED` : Order went out for delivery.\
-              > `PICKUP_AREA_ASSIGNED` : Designated area to pick up the order.\
+              > `PICKUP_AREA_ASSIGNED` : Informs the **Software Service** the designated area to pick up the order.\
               > `PICKED_UP` : Order has been picked up by customer.\
               > `DELIVERED` : Order has been delivered to customer.\
               > `CONCLUDED` : Order completed.\
@@ -3367,16 +3368,25 @@ components:
           properties:
             timing:
               type: 'array'
-              description: "Indicates whether the service accepts orders with immediate delivery or scheduled delivery. Please inform all accepted types in the field. \n\nIf not informed, defaults to the `INSTANT` option."
+              description: |- 
+                Indicates the timings that the service accepts: 
+                
+                `INSTANT`: for orders that must be prepared immediately.  
+                `SCHEDULED`: for orders scheduled for a specific date and time.  
+                `ONDEMAND`: for orders that will only be delivered when the consumer indicates that they are going to pick it up.  
+                
+                Please inform all accepted types in the field.  
+                If not informed, defaults to the `INSTANT` option.
               items:
                 type: 'string'
                 enum:
                   - INSTANT
                   - SCHEDULED
+                  - ONDEMAND
               example: ['INSTANT', 'SCHEDULED']
             schedule:
               type: 'object'
-              description: 'Information regarding the time windows for scheduling.'
+              description: "Information regarding the time windows for scheduling. \n\n This only applies to the `SCHEDULED` service timing."
               required:
                 [scheduleTimeWindow, scheduleStartWindow, scheduleEndWindow]
               properties:
@@ -3419,6 +3429,23 @@ components:
                     - 60_MINUTES
                     - 90_MINUTES
                     - 120_MINUTES
+        servicePriority:
+          type: array
+          description: |-
+            Indicates to the **Ordering Application** whether the merchant works with different order preparation and delivery priorities.  
+            Must enter up to how many priority levels the merchant serves.  
+            If not entered, it means that the merchant does not have any specific configuration for working with priority, and may or may not be able to do so.
+
+            **Note:** this field only makes sense for **Ordering Applications** that work with different delivery priorities.
+          items: 
+            type: 'string'
+            enum:
+              - 'PRIORITY1'
+              - 'PRIORITY2'
+              - 'PRIORITY3'
+              - 'PRIORITY4'
+              - 'PRIORITY5'   
+          example: ['PRIORITY1', 'PRIORITY2']               
         menuId:
           description: 'The id value of the `Menu` entity correlated to this `Service` entity.'
           type: string
@@ -3454,12 +3481,18 @@ components:
           description: "If the `polygon` is chosen to be used, `geoRadius` is not required.\n\n\n\nA polygon or multipolygon expressed as a series of three or more space delimited points."
           items:
             allOf:
-              - $ref: '#/components/schemas/Polygon'
+              - $ref: '#/components/schemas/Polygon'             
         geoRadius:
           type: 'object'
           description: 'If the `geoRadius` is chosen to be used, `polygon` is not required. Indicates the approximate radius (in meters) of the CIRCLE area.'
           allOf:
             - $ref: '#/components/schemas/GeoRadius'
+        exclusionAreaPolygon:
+          type: 'array'
+          description: "This object will act as a complement, indicating specific polygons within the previously mapped delivery area, where NO deliveries will be made. \n This field can be filled in regardless of whether `polygon` or `geoRadius` is used."
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ExclusionPolygon'             
 
     Polygon:
       type: 'object'
@@ -3493,6 +3526,30 @@ components:
         estimateDeliveryTime:
           type: 'integer'
           description: 'Estimate delivery time for this polygon in minutes'
+
+    ExclusionPolygon:
+      type: 'object'
+      title: 'Polygon'
+      required: [geoCoordinates]
+      properties:
+        geoCoordinates:
+          type: 'array'
+          description: "Coordinates of each point of the polygon. It is recommended that the first and last points be the same, but it is not required.\n\n\n\nEach point in a polygon or multipolygon is defined by a latitude point followed by a longitude point. You also must specify the points in a counter-clockwise direction."
+          items:
+            type: 'object'
+            title: 'geoCoordinate'
+            required: ['latitude', 'longitude']
+            properties:
+              latitude:
+                type: 'number'
+                format: 'float'
+                description: "Indicates the latitude coordinate of the polygon point.\n\n\n\nLatitude in degrees. Values are restricted to the range [[-90, 90]]."
+                example: -23.54809
+              longitude:
+                type: 'number'
+                format: 'float'
+                description: "Indicates the longitude coordinate of the polygon point.\n\n\n\nLongitude in degrees. Values are restricted to the range [[-180, 180]]."
+                example: -46.63638        
 
     GeoRadius:
       type: 'object'
@@ -4042,6 +4099,47 @@ components:
           type: integer
           description: 'The maximum number of options which should be selected in the option group.'
           example: 2
+        priceMethod:
+          type: string
+          description: |- 
+            Instructions on how this `optionGroup` should be calculated before being applied to the item.
+
+            **- SUM**: It will be added to the other optionGroups without any additional rules. **Default** option.  
+            **- MAX**: The highest `optionGroup` value between all `optionGroups` with `priceMethod` = `MAX` will be applied to the calculation.  
+            **- AVG**: The average between `optionGroup` with `priceMethod` = `AVG` will be applied to the calculation.  
+
+            Example:   
+              item base price: $25,00
+
+              optionGroup1 - priceMethod = **AVG**
+              - __option 1 = $5,00 (selected)__
+              - option 2 = $10,00 (not selected)
+
+              optionGroup2 - priceMethod = **AVG**
+              - option 1 = $7,00 (not selected)
+              - __option 2 = $10,00 (selected)__
+
+              optionGroup3 - priceMethod = **MAX**
+              - __option 1 = $15,00 (selected)__
+              - option 2 = $20,00 (not selected)
+
+              optionGroup4 - priceMethod = **MAX**
+              - option 1 = $30,00 (not selected)
+              - __option 2 = $35,00 (selected)__
+
+              optionGroup5 - priceMethod = **SUM**
+              - option 1 = $2,00 (not selected)
+              - __option 2 = $3,00 (selected)__
+              - option 3 = $5,00 (not selected)
+
+              **optionsPrice** = avg(optionGroup1, optionGroup2) + max(optionGroup3, optionGroup4) + optionGroup5  
+              **optionsPrice** = 7,50 + 35,00 + 3,00  
+              **optionPrice** = 45,50  
+              **itemPrice** = 25,00 + 45,50 = 70,50  
+          enum: 
+            - SUM
+            - MAX
+            - AVG
         options:
           type: array
           description: 'A list of `Option` entities that correspond to this option group'
@@ -4309,6 +4407,7 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
@@ -4376,6 +4475,7 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
@@ -4389,10 +4489,16 @@ components:
             - 'CANCELLED_DENIED'
         orderTiming:
           type: 'string'
-          description: 'Order Timing. Indicates whether the ORDER will have immediate or scheduled delivery.'
+          description: |-
+            Indicates the timing for initiating the order:
+
+            `INSTANT`: for orders that must be prepared immediately.
+            `SCHEDULED`: for orders scheduled for a specific date and time. It will always be accompanied by the `schedule` object.
+            `ONDEMAND`: for orders that will only be delivered when the consumer indicates that they are going to pick it up. In this case, the **Software Service** will receive a `PREPARATION_REQUESTED` event indicating that the order should be started.  
           enum:
             - 'INSTANT'
             - 'SCHEDULED'
+            - 'ONDEMAND'
         preparationStartDateTime:
           type: 'string'
           format: 'date-time'
@@ -4510,11 +4616,31 @@ components:
                 allOf:
                   - $ref: '#/components/schemas/Price'
                 description: 'The sum of the total prices of all options of the item.'
+              subtotalPrice:
+                type: 'object'
+                description: |- 
+                  This price **is for information purposes only** and should be used to inform the total price for the quantity of items ordered, excluding additional options. **(quantity * unitPrice)**
+
+                    **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                allOf:
+                  - $ref: '#/components/schemas/Price'
               totalPrice:
                 type: 'object'
                 description: Total Price of the item. **(quantity * (unitPrice + optionsPrice))**
                 allOf:
                   - $ref: '#/components/schemas/Price'
+              indoor:
+                type: object
+                description: "Item-related properties for when the order is of type `INDOOR`"
+                properties:
+                  productionPoint:
+                    type: 'string'
+                    description: |-
+                      Production point for this specific item.  
+                      It should be used when the merchant has more than one production point and it is necessary to carry out production at a specific location.
+
+                      Note: The locations must be previously registered in both the **Ordering Application** and the **Software Service**.
+
               options:
                 type: 'array'
                 description: 'The optional extras chosen by the consumer, related to this item.'
@@ -4643,6 +4769,7 @@ components:
                       enum:
                         - 'MARKETPLACE'
                         - 'MERCHANT'
+                        - 'CHAIN'
                     amount:
                       type: 'object'
                       description: Discount amount given by the sponsor.
@@ -4766,6 +4893,16 @@ components:
                       It can be used to indicate some useful information of the chosen payment method, such as the name of the wallet, or an authorization number.  
 
                       This field can be used for any `method` entered, but it is highly recommended to fill it in when the chosen `method` is `OTHER`.
+                  transaction:
+                    type: object
+                    description: "Authorization details and intermediary identification for credit card and/or subsidy transactions"
+                    properties: 
+                      authorizationCode:
+                        type: string
+                        description: "Credit card and/or subsidy transaction authorization number."
+                      acquirerDocument: 
+                        type: string
+                        description: "Document of the Transaction Intermediary (agency, delivery platform, marketplace, and similar) of services and businesses."
                   changeFor:
                     type: 'number'
                     format: 'decimal'
@@ -4782,9 +4919,9 @@ components:
               type: 'boolean'
               description: 'Inform if a tax invoice has already been issued for this order.'
               default: false
-            accessKey:
+            taxInvoiceURL:
               type: 'string'
-              description: 'The invoice access key.'                    
+              description: 'The address to download the tax invoice issued.'                    
         customer:
           type: 'object'
           required:
@@ -4833,6 +4970,19 @@ components:
               type: 'string'
               format: date-time
               description: "Date and time for when the order is ready. It can be calculated by the **Ordering Application** using the average preparation time of the dishes. Default is the same time as order creation time. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
+        orderPriority:
+            type: 'string'
+            description: |-
+              Defines the priority of preparation and delivery of this order in relation to other orders from the same **Ordering Application**.  
+              The lower the priority, the faster this order should be fulfilled.
+
+              **Note:** This field depends on both the Ordering Application and the Merchant being able to support this functionality.
+            enum:
+              - 'PRIORITY1'
+              - 'PRIORITY2'
+              - 'PRIORITY3'
+              - 'PRIORITY4'
+              - 'PRIORITY5'
         delivery:
           type: 'object'
           description: "Information for DELIVERY orders. \n\n**REQUIRED** if the chosen `type` is `DELIVERY`"
@@ -4923,6 +5073,12 @@ components:
               type: 'string'
               format: date-time
               description: "Delivery date. The date time that the delivery actually took place. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
+            pickupCode:
+              type: 'string'
+              description: |-
+                It gives the Merchant a code so that the **delivery man** can collect the order.
+
+                Note: Not to be confused with the customer's delivery code.
         takeout:
           type: 'object'
           description: "Information for TAKEOUT orders. \n\n**REQUIRED** if the chosen `type` is `TAKEOUT`"
@@ -4952,10 +5108,13 @@ components:
                 - `PLACE`: Used for orders placed in the **Ordering Application** to be consumed inside the merchant at a specific location already specified, such as a **table** or a **counter**.
                 
                 - `TAB`: Used for establishments that control orders via **tabs** or **control cards** (can be used in conjunction with the place field).
+
+                - `TERMINAL`: Used for orders placed through self-services, such as kiosks, totems or tablets.
               enum:
                 - 'DEFAULT'
                 - 'PLACE'
                 - 'TAB'
+                - 'TERMINAL'
             indoorDateTime:
               type: 'string'
               format: date-time
@@ -5079,6 +5238,7 @@ components:
         mapping:
           CREATED: '#/components/schemas/EventMetadata'
           CONFIRMED: '#/components/schemas/EventMetadataConfirm'
+          PREPARATION_REQUESTED: '#/components/schemas/EventMetadata'
           READY_FOR_PICKUP: '#/components/schemas/EventMetadata'
           DISPATCHED: '#/components/schemas/EventMetadata'
           PICKUP_AREA_ASSIGNED: '#/components/schemas/EventMetadataPickup'
@@ -5101,6 +5261,7 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
@@ -5969,6 +6130,23 @@ components:
           description: |-
             Number of packages that will be transported in this order. For example, 2 packages, or 3 boxes.  
             > The unit of measure will not be considered, only the quantity.
+        items:
+          type: 'array'
+          description: 'List of items that are part of the delivery.'
+          items:
+            type: 'object'
+            properties:
+              name:
+                type: 'string'
+                description: 'Product name'
+              quantity:
+                type: 'number'
+                format: 'decimal'
+                description: |-
+                  Amount of items.
+
+                    > Use fractional values for quantities smaller than the unit of measure:
+                    > Example: 500 grams = 0.5 KG
         specialInstructions:
           type: string
           description: "Free text to describe special instructions that may apply. These instructions can be used to give some special guidance to the delivery person at the time of the pickup or delivery."
