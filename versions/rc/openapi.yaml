@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API (Release Candidate)
-  version: 'v1.5.0-rc.3'
+  version: 'v1.5.0-rc.4'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -49,6 +49,53 @@ info:
     # └► Changelog
       
     Latest Changes:
+
+      ### Version [v1.5.0-rc.4] - Jan 14, 2024
+
+      #### ORDER changes
+      
+      - [GET /orders/{orderId}](#operation/ordersDetails)
+        - Added `subtotalPrice` propertie to the `items` and `items.options` objects.
+
+        - Added `indoor` object to the `items` object.
+
+        - Added `orderPriority` propertie.
+
+        - Added `pickupCode` propertie to the `delivery` object.
+
+      ### Version [v1.5.0-rc.3] - Dec 11, 2024
+
+      #### MERCHANT changes
+
+      - [GET /merchant](#operation/getMerchant)
+        - Added `servicePriority` propertie to the `services` object.     
+
+      #### ORDER changes
+
+      - Added a new optional order event, called `PREPARATION_REQUESTED`.
+      This new event has the purpose of informing the **SOFTWARE SERVICE** to start the preparation of a `ONDEMAND` order. 
+      
+      - [GET /orders/{orderId}](#operation/ordersDetails)
+        - Added `ONDEMAND` option to the `orderTiming` enum.
+
+        - Added `CHAIN` option to the `discounts.sponsorshipValues.name` enum.
+
+        - Added `transaction` object to the `payments` object.
+
+      #### MERCHANT changes
+
+      - [GET /merchant](#operation/getMerchant)
+        - Added `ONDEMAND` option to the `serviceTiming` enum.
+        
+        - Added `exclusionAreaPolygon`to the `serviceArea` object.
+
+        - Added `priceMethod` propertie to the 'optionGroup' object.
+
+      #### LOGISTICS changes    
+      
+      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
+        - Added `items` optional object, to provide more information about the items being delivered.
+
 
       ### Version [v1.5.0-rc.2] - Oct 7, 2024
     
@@ -4672,7 +4719,27 @@ components:
                       description: 'External product code.'
                     unit:
                       type: 'string'
-                      description: 'Measure unit of the item.'
+                      description: |
+                        Item's Unit of Measurement.
+      
+                        Possible values:  
+                        - `UN` - Unit  
+                        - `KG` - Kilogram  
+                        - `L` - Liter  
+                        - `OZ` - Ounce  
+                        - `LB` - Pound  
+                        - `GAL` - Gallon  
+      
+                        > Use fractional values for quantities smaller than the unit of measure:
+                        > Example: 500 grams = 0.5 KG
+                      enum:
+                        - 'UN'
+                        - 'KG'
+                        - 'L'
+                        - 'OZ'
+                        - 'LB'
+                        - 'GAL'
+                      example: 'KG'
                     ean:
                       type: 'string'
                       description: 'EAN is the barcode standard used on items.'
@@ -4695,6 +4762,14 @@ components:
                           Discounts applied during the order such as coupons and vouchers should not be considered here. These must be reported in the `discounts` object.
                           
                           **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                    subtotalPrice:
+                      type: 'object'
+                      description: |- 
+                        This price **is for information purposes only** and should be used to inform the total price for the quantity of items ordered, excluding additional options. **(quantity * unitPrice)**
+      
+                          **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                      allOf:
+                        - $ref: '#/components/schemas/Price'                          
                     totalPrice:
                       type: 'object'
                       description: Total Price of the option. **(quantity * unitPrice)**
