@@ -42,39 +42,60 @@ info:
       
       Latest Changes:
 
-      ### Version [v1.3.0] - Jan 9, 2024
+      ### Version [v1.4.0] - Jun 18, 2024
 
-      #### COMMON changes
+      #### SECURITY changes
 
-      - Removed the necessity to enter at least 5 digits for all `latitude` and `longitude` properties.      
+      - Changed the text describing **OAuth2** authentication, making clear the roles of the **Ordering Application** and the **Logistics Service**, since they both use the same logic to provide the access credentials and the token URL.
 
       #### ORDERS changes
 
+      - [GET v1/events:polling ](#operation/pollingEvents)
+      - [POST /orderUpdate (WEBHOOK)](#operation/newEvent)
       - [GET /v1/orders/{orderId}](#operation/ordersDetails)
 
-        - Added a new optional propertie `salesChannel`.  
-          This should be used to inform the channel that originated the order.
+        - Added a new optional propertie `virtualBrand`.  
+          This should be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens).
 
-        - Added a new optional propertie `discounts.sponsorshipValues.discountCode`.  
-          This code should be used to identify a discount coupon used by the user, or an identification code for a marketing campaign, for example.
+      - [POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)
 
-        - Added new optional properties `items.originalPrice` and `items.options.originalPrice` to inform the price of an item before applying markdowns on the list price.
-      
-        - Modified the requirement for the `payments.methods.brand` property. It can now be informed for both prepaid and pending payments.
+        - Added this new endpoint to validate a delivery code provided by the customer.
 
-        - Added the information that the `customer` object is **REQUIRED** when the `type` of the order is `DELIVERY`.
+      - Other ORDERS changes:
+        
+        - The `Order Tracking` menu has been changed to `Order Delivery Info`
+
+        - The places in the documentation where the text referenced the `ORDER_CANCELLATION_REQUESTED` enum have been adjusted to `ORDER_CANCELLATION_REQUEST`. This will not affect any implementation.
+
+        - The diagram of the [Order Cancellation section](#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
+
+        - Changed the text in the section on receiving events to indicate that ACKNOLODGMENT is only required for those working via POLLING.
+          The text has also been changed to indicate that the Ordering Application can work with either of the two services and that POLLING is not required as a mandatory implementation. (Contrary to what was previously understood.)
+
 
       #### LOGISTICS changes
 
-      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
+      - [POST /v1/logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)
 
-        - Fixed the guidance on how to use the combination of orders in a new delivery request.  
-          Previously the description was incorrectly quoting the `deliveryId` and `combinedDeliveriesId` fields. This has been corrected to `orderId` and `combinedOrdersId` respectively.  
-          Nothing has changed on the endpoint itself.
+        - Added this new optional endpoint for the MERCHANT to notify the Logistic Service that an order is ready for pickup. 
+        
+        - Changed the delivery order flow diagram to reflect the new endpoint.
 
-        - Added a new optional propertie `customerPhone` to inform the customer's phone number. 
+      - [POST v1/logistics/delivery](#operation/logisticsNewDelivery)  
+      
+        - Added a new optional propertie `notifyReadyForPickup` to indicate if the **Logistics Service** must be ready to receive a Ready for Pickup request. 
+        - Added a new optional propertie `customerPhoneLocalizer` to indicate the order or customer localizer information to a call center.
+        - Added a new optional propertie `confirmationCodeRequired` to indicate whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery.
+        
+      - [POST v1/logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode)
+        
+        - Added this new Webhook for the MERCHANT to receive the Delivery Confirmation Code informed by the customer from the Logistics Service. 
+      
+      - Other LOGISTICS changes:
 
-      #### OTHERS changes
+        - The `Delivery Tracking` menu has been changed to `Webhooks`
+
+    #### OTHERS changes
 
       - Bug fixes and general corrections in the documentation texts and links.
 
@@ -189,13 +210,14 @@ info:
     |**[ORDER](#tag/ordersSection)**||||
     |[GET /events:polling ](#operation/pollingEvents)|X|||
     |[POST /events/acknowledgment](#operation/pollingAcknowledgment)|X|||
-    |[POST /orderUpdate](#operation/newEvent)||X||
+    |[POST /orderUpdate (WEBHOOK)](#operation/newEvent)||X||
     |||||
     |[GET /orders/{orderId}](#operation/ordersDetails)|X|||
     |[POST /orders/{orderId}/confirm](#operation/confirmOrder)|X|||
     |[POST /orders/{orderId}/readyForPickup](#operation/orderReady)|X|||
     |[POST /orders/{orderId}/dispatch](#operation/dispatchOrder)|X|||
     |[POST /orders/{orderId}/delivered](#operation/orderDelivered)|X|||
+    |[POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)|X|||
     |||||
     |[POST /orders/{orderId}/requestCancellation](#operation/requestCancellation)|X|||
     |[POST /orders/{orderId}/acceptCancellation](#operation/cancellationAccepted)|X|||
@@ -205,19 +227,21 @@ info:
     |--------------------------------||||
     |**[LOGISTICS](#tag/logisticsSection)**||||
     |[POST /logistics/delivery](#operation/logisticsNewDelivery)|||X|
+    |[POST /logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)|||X|
     |[POST /logistics/orderPicked/{orderId}](#operation/logisticsPicked)|||X|
     |[POST /logistics/finishDelivery/{orderId}](#operation/logisticsFinish)|||X|
     |[POST /logistics/handleProblem/{orderId}](#operation/logisticsProblem)|||X|
     |[POST /logistics/cancel/{orderId}](#operation/logisticsCancel)|||X|
     |[GET  /logistics/delivery/{orderId}](#operation/logisticDetails)|||X|
     |[POST /logistics/availability](#tag/logisticPrice)|||X|
-    |[POST /deliveryUpdate](#operation/newLogisticEvent) |X|X||
+    |[POST /deliveryUpdate (WEBHOOK)](#operation/newLogisticEvent) |X|X||
+    |[POST /logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode) |X|X||
 
       ## Parametrizations
 
       > **IMPORTANT: Before reading this section, it is recommended the reading of the complete documentation, for a better understanding of the different required parameterizations.**
 
-      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery stantard should provide some parameters for the other party to correctly connect to its routes. 
+      Once the endpoints are implemented, the parties interested in integrating via the Open Delivery standard should provide some parameters for the other party to correctly connect to its routes. 
 
       Below is a list of information that each party must provide to the other party for the integrations to occur, i.e., you should consider that the information below will be created as parameters on the system that will call the endpoints.
 
