@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API
-  version: 'v1.4.0'
+  version: 'v1.5.0'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -42,60 +42,84 @@ info:
       
       Latest Changes:
 
-      ### Version [v1.4.0] - Jun 18, 2024
-
-      #### SECURITY changes
-
-      - Changed the text describing **OAuth2** authentication, making clear the roles of the **Ordering Application** and the **Logistics Service**, since they both use the same logic to provide the access credentials and the token URL.
+      ### Version [v1.5.0] - Jan 20, 2024
 
       #### ORDERS changes
 
-      - [GET v1/events:polling ](#operation/pollingEvents)
-      - [POST /orderUpdate (WEBHOOK)](#operation/newEvent)
-      - [GET /v1/orders/{orderId}](#operation/ordersDetails)
+      - Added two new optional order events:  
+        **PREPARING**: Informs the **Ordering Application** that the order has already begun preparation.  
+        **PICKED_UP**: Informs the **Ordering Application** that the order has been picked up by the customer.  
 
-        - Added a new optional propertie `virtualBrand`.  
-          This should be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens).
+        With this, the following changes have been made:
 
-      - [POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)
-
-        - Added this new endpoint to validate a delivery code provided by the customer.
-
-      - Other ORDERS changes:
+        - Added new [POST /v1/orders/{orderId}/preparing](#operation/orderPreparing) endpoint.
+        - Added new [POST /v1/orders/{orderId}/pickedUp](#operation/orderPickedUp) endpoint.  
         
-        - The `Order Tracking` menu has been changed to `Order Delivery Info`
+        - [GET /events:polling](#operation/pollingEvents) || [POST /events/acknowledgment](#operation/pollingAcknowledgment) || [POST /orderUpdate](#operation/newEvent)
 
-        - The places in the documentation where the text referenced the `ORDER_CANCELLATION_REQUESTED` enum have been adjusted to `ORDER_CANCELLATION_REQUEST`. This will not affect any implementation.
+          - added `PREPARING` to the events
+          - added `PICKED_UP` to the events
 
-        - The diagram of the [Order Cancellation section](#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
+        - [GET /orders/{orderId}](#operation/ordersDetails)
+          - added `sendPreparing` optional propertie.
+          - added `sendPickedUp` optional propertie.
 
-        - Changed the text in the section on receiving events to indicate that ACKNOLODGMENT is only required for those working via POLLING.
-          The text has also been changed to indicate that the Ordering Application can work with either of the two services and that POLLING is not required as a mandatory implementation. (Contrary to what was previously understood.)
+      - Added a new optional order event, called `PREPARATION_REQUESTED`.
+      This new event has the purpose of informing the **SOFTWARE SERVICE** to start the preparation of a `ONDEMAND` order. 
+      - Added `ONDEMAND` option to the `orderTiming` enum.
 
+      - [GET /orders/{orderId}](#operation/ordersDetails)
+
+        - Added `taxInvoice` optional object.
+          This object is optional and can be used by the **Software Service** to know if a invoice has already been issued and the URL to access it.
+
+        - Added `transaction` optional object to the `payments` object.
+          This object contains information about the payment transaction, such as the transaction ID and the acquirer document.
+
+        - Added `orderPriority` optional propertie. 
+          This property is used to indicate to the merchant the priority of preparation of the order in relation to other orders sent by the same Ordering Application.
+
+        - Added `TERMINAL` option to the `indoor.type` enum.
+        - Added `waiterCode` optional propertie to the `indoor` object.
+        - Added `seat` optional propertie to the `indoor` object.
+        - Added `CHAIN` option to the `discounts.sponsorshipValues.name` enum.
+        - Added `subtotalPrice` optional propertie to the `items` and `items.options` objects.
+        - Added `scalePriceApplied` optional propertie to the `items` object.
+        - Added `indoor` optional object to the `items` object.
+
+        - Added `pickupCode` optional propertie to the `delivery` object.
+
+      #### MERCHANT changes
+
+      - **WEBP** format is now accepted for images.
+      
+      - [GET /merchant](#operation/getMerchant)
+        - Added `images` propetie in `items` entity
+
+          The `images` propetie is an array that holds images of the item, intended for use when size variations of the image are needed.
+          If the `images` array contains any values, it must be considered, and the preexisting `image` field must be ignored.
+          If the `images` array is empty, the preexisting `image` field must be considered.
+
+          The images in the array must indicate a `type` beetwen `main` or `thumb`.
+
+        - Added `ONDEMAND` option to the `serviceTiming` enum.
+          This propertie allows for the merchant to indicate that the service is available on demand, without a fixed schedule.
+        
+        - Added `exclusionAreaPolygon`to the `serviceArea` object.
+          This propertie allows for the merchant to indicate a polygon area that is not served by the merchant.
+
+        - Added `priceMethod` propertie to the 'optionGroup' object.
+          This propertie allows for the merchant to indicate the price calculation method for multiple options groups on the same item.   
+          
+        - Added `servicePriority` propertie to the `services` object.
+          This propertie allows for the merchant to indicate if the merchant works if order priorities.            
 
       #### LOGISTICS changes
 
-      - [POST /v1/logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)
+      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
+        - Added `items` optional object, to provide more information about the items being delivered.
 
-        - Added this new optional endpoint for the MERCHANT to notify the Logistic Service that an order is ready for pickup. 
-        
-        - Changed the delivery order flow diagram to reflect the new endpoint.
-
-      - [POST v1/logistics/delivery](#operation/logisticsNewDelivery)  
-      
-        - Added a new optional propertie `notifyReadyForPickup` to indicate if the **Logistics Service** must be ready to receive a Ready for Pickup request. 
-        - Added a new optional propertie `customerPhoneLocalizer` to indicate the order or customer localizer information to a call center.
-        - Added a new optional propertie `confirmationCodeRequired` to indicate whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery.
-        
-      - [POST v1/logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode)
-        
-        - Added this new Webhook for the MERCHANT to receive the Delivery Confirmation Code informed by the customer from the Logistics Service. 
-      
-      - Other LOGISTICS changes:
-
-        - The `Delivery Tracking` menu has been changed to `Webhooks`
-
-    #### OTHERS changes
+      #### OTHERS changes
 
       - Bug fixes and general corrections in the documentation texts and links.
 
@@ -143,8 +167,9 @@ info:
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
 
-      - [1.5.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
-      - **v1.4.0 - (LATEST RELEASE)**
+      - [1.6.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
+      - **v1.5.0 - (LATEST RELEASE)**
+        [v1.4.0](https://abrasel-nacional.github.io/docs/versions/v1.4.0/)
       - [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
       - [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
       - [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
@@ -214,7 +239,9 @@ info:
     |||||
     |[GET /orders/{orderId}](#operation/ordersDetails)|X|||
     |[POST /orders/{orderId}/confirm](#operation/confirmOrder)|X|||
+    |[POST /orders/{orderId}/preparing](#operation/orderPreparing)|X|||
     |[POST /orders/{orderId}/readyForPickup](#operation/orderReady)|X|||
+    |[POST /orders/{orderId}/pickedUp](#operation/orderPickedUp)|X|||
     |[POST /orders/{orderId}/dispatch](#operation/dispatchOrder)|X|||
     |[POST /orders/{orderId}/delivered](#operation/orderDelivered)|X|||
     |[POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)|X|||
@@ -787,10 +814,6 @@ tags:
 
       This endpoint returns the code 200 and the content of the request. If an invalid request id or the id of an expired order is entered (depending on the **Ordering Application** policy) the endpoint returns 404.
 
-      In this section you will find all the details of the payload of an order:
-
-      <SchemaDefinition schemaRef="#/components/schemas/Order" />
-
   - name: ordersStatus
     x-displayName: └───● Order Event Updates
     description: |-
@@ -859,7 +882,7 @@ tags:
       - SYSTEMIC_ISSUES
       - DUPLICATE_APPLICATION
       - UNAVAILABLE_ITEM
-      - RESTAURANT_WITHOUT_DELIVERY_MAN
+      - RESTAURANT_WITHOUT_DELIVERY_PERSON
       - OUTDATED_MENU
       - ORDER_OUTSIDE_THE_DELIVERY_AREA
       - BLOCKED_CUSTOMER
@@ -1381,11 +1404,14 @@ paths:
 
               **Event Types definitions:**
               > `CREATED` : Order created.\
-              > `CONFIRMED` : Order confirmed.\
+              > `CONFIRMED` : Order confirmed.\           
+              > `PREPARATION_REQUESTED` : Informs the **Software Service** that they can start prepare the order.\
+              > `PREPARING` : Preparation of the order has started\   
               > `READY_FOR_PICKUP`: Order ready for pickup by the customer or delivery person.\
               > `DISPATCHED` : Order went out for delivery.\
-              > `PICKUP_AREA_ASSIGNED` : Designated area to pick up the order.\
-              > `DELIVERED` : Order has been delivered.\
+              > `PICKUP_AREA_ASSIGNED` : Informs the **Software Service** the designated area to pick up the order.\
+              > `PICKED_UP` : Order has been picked up by customer.\
+              > `DELIVERED` : Order has been delivered to customer.\
               > `CONCLUDED` : Order completed.\
               > `CANCELLATION_REQUESTED` : Sent by the **Software Service** to the **Ordering Application**.\
               > `CANCELLATION_REQUEST_DENIED` : It must be sent from the **Ordering Application** to the **Software Service**.\
@@ -1398,9 +1424,11 @@ paths:
               enum:
                 - 'CREATED'
                 - 'CONFIRMED'
+                - 'PREPARING'                
                 - 'DISPATCHED'
                 - 'READY_FOR_PICKUP'
                 - 'PICKUP_AREA_ASSIGNED'
+                - 'PICKED_UP'
                 - 'DELIVERED'
                 - 'CONCLUDED'
                 - 'CANCELLATION_REQUESTED'
@@ -1574,7 +1602,7 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
-  /v1/orders/{orderId}/requestCancellation:
+  /v1/orders/{orderId}/preparing:
     post:
       parameters:
         - name: orderId
@@ -1583,22 +1611,24 @@ paths:
           schema:
             type: 'string'
             format: 'uuid'
-            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'       
-      requestBody:
-        $ref: '#/components/requestBodies/CancelRequest'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
       tags:
-        - 'ordersCancellation'
-      operationId: 'requestCancellation'
-      summary: 'Request order cancellation'
+        - 'ordersStatus'
+      operationId: 'orderPreparing'
+      summary: 'Preparing (Optional)'
       security:
         - OAuth2: [od.all]
       description: |-
-        Request order cancellation to the **Ordering Application**.
+        Informs the **Ordering Application** that the preparation of the order has already begun.
 
-        > It is expected to receive a `CANCELLATION_REQUESTED` event after this action.
+        > It is expected to receive a `PREPARING` event after this action.
+
+        Important: This endpoint is not mandatory and should be sent only if the **Ordering Application** is able to receive this request and when the Order `service.serviceType` = `TAKEOUT`.
+
+        > To check whether or not it is required to call this endpoint, check the `sendPreparing` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
 
         <br /><br />
-        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
@@ -1607,100 +1637,6 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/Accepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'   
-        '403':
-          $ref: '#/components/responses/AccessDenied'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntityOrderCancellation'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-
-  /v1/orders/{orderId}/acceptCancellation:
-    post:
-      parameters:
-        - name: orderId
-          in: 'path'
-          required: true
-          schema:
-            type: 'string'
-            format: 'uuid'
-            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'   
-      tags:
-        - 'ordersCancellation'
-      operationId: 'cancellationAccepted'
-      summary: 'Accept order cancellation'
-      security:
-        - OAuth2: [od.all]
-      description: |-
-        Informs the **Ordering Application** that the cancellation request has been accepted and the order can be Cancelled.
-
-        > It is expected to receive a `CANCELLED` event after this action.
-
-        <br /><br />
-        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
-
-        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
-        <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
-        </div>
-      responses:
-        '200':
-          description: Status 200 available for compatibility reasons. Please use status 204 instead.
-        '204':
-          description: Order cancellation has been confirmed. No response content.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'   
-        '403':
-          $ref: '#/components/responses/AccessDenied'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-
-  /v1/orders/{orderId}/denyCancellation:
-    post:
-      parameters:
-        - name: orderId
-          in: 'path'
-          required: true
-          schema:
-            type: 'string'
-            format: 'uuid'
-            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'    
-      requestBody:
-        $ref: '#/components/requestBodies/CancelDenied'
-      tags:
-        - 'ordersCancellation'
-      operationId: 'cancellationDenied'
-      summary: 'Deny order cancellation'
-      security:
-        - OAuth2: [od.all]
-      description: |-
-        Informs the **Ordering Application** that the cancellation request has been denied and the order cannot be Cancelled.
-
-        > It is expected to receive a `CANCELLATION_DENIED` event after this action.
-
-        <br /><br />
-        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
-
-        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
-        <div align="center">
-          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
-        </div>
-      responses:
-        '200':
-          description: Status 200 available for compatibility reasons. Please use status 204 instead.
-        '204':
-          description: Order cancellation has been denied. No response content.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1737,6 +1673,54 @@ paths:
 
         <br /><br />
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
+
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
+        <div align="center">
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
+        </div>
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /v1/orders/{orderId}/pickedUp:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
+      tags:
+        - 'ordersStatus'
+      operationId: 'orderPickedUp'
+      summary: 'Picked Up (Optional)'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        Informs the **Ordering Application** that the order has been picked up.
+
+        > It is expected to receive a `PICKED_UP` event after this action.
+
+        Important: This endpoint is not mandatory and should be sent only if the **Ordering Application** is able to receive this request and when the Order `service.serviceType` = `TAKEOUT`.
+
+        > To check whether or not it is required to call this endpoint, check the `sendPickedUp` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
+
+        <br /><br />
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
 
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
         <div align="center">
@@ -1807,6 +1791,54 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /v1/orders/{orderId}/delivered:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
+      tags:
+        - 'ordersStatus'
+      operationId: 'orderDelivered'
+      summary: 'Delivered (Optional)'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        Informs the **Ordering Application** that the order has been delivered.
+
+        > It is expected to receive a `DELIVERED` event after this action.
+
+        Important: This endpoint is not mandatory and should be sent only if the **Ordering Application** is able to receive this request and only in cases where the order logistics service is provided by the Merchant and not the Marketplace.
+
+        > To check whether or not it is required to call this endpoint, check the `sendDelivered` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
+
+        <br /><br />
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
+
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
+        <div align="center">
+          <img src="https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png" />
+        </div>
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+          
   /v1/orders/{orderId}/validateCode:
     post:
       parameters:
@@ -1826,7 +1858,7 @@ paths:
       tags:
         - 'ordersTracking'
       operationId: 'orderValidateDelivery'
-      summary: '[NEW] Validate Delivery Code'
+      summary: 'Validate Delivery Code'
       security:
         - OAuth2: [od.all]
       description: |-
@@ -1860,57 +1892,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-          
-        
-
-  /v1/orders/{orderId}/delivered:
-    post:
-      parameters:
-        - name: orderId
-          in: 'path'
-          required: true
-          schema:
-            type: 'string'
-            format: 'uuid'
-            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
-      tags:
-        - 'ordersStatus'
-      operationId: 'orderDelivered'
-      summary: 'Delivered'
-      security:
-        - OAuth2: [od.all]
-      description: |-
-        Informs the **Ordering Application** that the order has been delivered.
-
-        > It is expected to receive a `DELIVERED` event after this action.
-
-        Important: This endpoint is not mandatory and should be sent only if the **Ordering Application** is able to receive this request and only in cases where the order logistics service is provided by the Merchant and not the Marketplace.
-
-        > To check whether or not it is required to call this endpoint, check the `sendDelivered` field in the endpoint: [GET /orders/{orderId}](#operation/ordersDetails)
-
-        <br /><br />
-        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
-
-        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
-        <div align='center'>
-          <img src='https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png' />
-        </div>
-      responses:
-        '202':
-          $ref: '#/components/responses/Accepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'   
-        '403':
-          $ref: '#/components/responses/AccessDenied'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-
+                  
   /v1/orders/{orderId}/tracking:
     post:
       parameters:
@@ -1944,11 +1926,151 @@ paths:
 
         <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
         <div align='center'>
-          <img src='https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png' />
+          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
         </div>
       responses:
         '202':
           $ref: '#/components/responses/Accepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+                 
+  /v1/orders/{orderId}/requestCancellation:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'       
+      requestBody:
+        $ref: '#/components/requestBodies/CancelRequest'
+      tags:
+        - 'ordersCancellation'
+      operationId: 'requestCancellation'
+      summary: 'Request order cancellation'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        Request order cancellation to the **Ordering Application**.
+
+        > It is expected to receive a `CANCELLATION_REQUESTED` event after this action.
+
+        <br /><br />
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
+
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
+        <div align='center'>
+          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
+        </div>
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityOrderCancellation'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /v1/orders/{orderId}/acceptCancellation:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'   
+      tags:
+        - 'ordersCancellation'
+      operationId: 'cancellationAccepted'
+      summary: 'Accept order cancellation'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        Informs the **Ordering Application** that the cancellation request has been accepted and the order can be Cancelled.
+
+        > It is expected to receive a `CANCELLED` event after this action.
+
+        <br /><br />
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
+
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
+        <div align="center">
+          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png" />
+        </div>
+      responses:
+        '200':
+          description: Status 200 available for compatibility reasons. Please use status 204 instead.
+        '204':
+          description: Order cancellation has been confirmed. No response content.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /v1/orders/{orderId}/denyCancellation:
+    post:
+      parameters:
+        - name: orderId
+          in: 'path'
+          required: true
+          schema:
+            type: 'string'
+            format: 'uuid'
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'    
+      requestBody:
+        $ref: '#/components/requestBodies/CancelDenied'
+      tags:
+        - 'ordersCancellation'
+      operationId: 'cancellationDenied'
+      summary: 'Deny order cancellation'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        Informs the **Ordering Application** that the cancellation request has been denied and the order cannot be Cancelled.
+
+        > It is expected to receive a `CANCELLATION_DENIED` event after this action.
+
+        <br /><br />
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
+
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
+        <div align='center'>
+          <img src='https://abrasel-nacional.github.io/docs/images/directionPOSTSS_OA.png' />
+        </div>
+      responses:
+        '200':
+          description: Status 200 available for compatibility reasons. Please use status 204 instead.
+        '204':
+          description: Order cancellation has been denied. No response content.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2759,6 +2881,10 @@ components:
                 - '1.1.1'
                 - '1.2.0'
                 - '1.2.1'
+                - '1.3.0'
+                - '1.3.1'
+                - '1.4.0'
+                - '1.5.0'
         order:
           type: 'object'
           description: "Information regarding the **Order's** standard endpoints."
@@ -2774,8 +2900,11 @@ components:
                 >  - "POST /v1/events/acknowledgment"
                 >  - "GET /v1/orders/{orderId}"
                 >  - "POST /v1/orders/{orderId}/confirm"
+                >  - "POST /v1/orders/{orderId}/preparing"
                 >  - "POST /v1/orders/{orderId}/readyForPickup"
+                >  - "POST /v1/orders/{orderId}/pickedUp"                
                 >  - "POST /v1/orders/{orderId}/dispatch"
+                >  - "POST /v1/orders/{orderId}/delivered"                
                 >  - "POST /v1/orders/{orderId}/requestCancellation"
                 >  - "POST /v1/orders/{orderId}/acceptCancellation"
                 >  - "POST /v1/orders/{orderId}/denyCancellation"
@@ -2786,6 +2915,10 @@ components:
                 - '1.1.1'
                 - '1.2.0'
                 - '1.2.1'
+                - '1.3.0'
+                - '1.3.1'
+                - '1.4.0'
+                - '1.5.0'
             availableEventsMethods:
               type: array
               description: 'Lists which methods for obtaining new order events the **Software Service** can use with this **Ordering Application**.'
@@ -3330,16 +3463,25 @@ components:
           properties:
             timing:
               type: 'array'
-              description: "Indicates whether the service accepts orders with immediate delivery or scheduled delivery. Please inform all accepted types in the field. \n\nIf not informed, defaults to the `INSTANT` option."
+              description: |- 
+                Indicates the timings that the service accepts: 
+                
+                `INSTANT`: for orders that must be prepared immediately.  
+                `SCHEDULED`: for orders scheduled for a specific date and time.  
+                `ONDEMAND`: for orders that will only be delivered when the consumer indicates that they are going to pick it up.  
+                
+                Please inform all accepted types in the field.  
+                If not informed, defaults to the `INSTANT` option.
               items:
                 type: 'string'
                 enum:
                   - INSTANT
                   - SCHEDULED
+                  - ONDEMAND
               example: ['INSTANT', 'SCHEDULED']
             schedule:
               type: 'object'
-              description: 'Information regarding the time windows for scheduling.'
+              description: "Information regarding the time windows for scheduling. \n\n This only applies to the `SCHEDULED` service timing."
               required:
                 [scheduleTimeWindow, scheduleStartWindow, scheduleEndWindow]
               properties:
@@ -3382,6 +3524,23 @@ components:
                     - 60_MINUTES
                     - 90_MINUTES
                     - 120_MINUTES
+        servicePriority:
+          type: array
+          description: |-
+            Indicates to the **Ordering Application** whether the merchant works with different order preparation and delivery priorities.  
+            Must enter up to how many priority levels the merchant serves.  
+            If not entered, it means that the merchant does not have any specific configuration for working with priority, and may or may not be able to do so.
+
+            **Note:** this field only makes sense for **Ordering Applications** that work with different delivery priorities.
+          items: 
+            type: 'string'
+            enum:
+              - 'PRIORITY1'
+              - 'PRIORITY2'
+              - 'PRIORITY3'
+              - 'PRIORITY4'
+              - 'PRIORITY5'   
+          example: ['PRIORITY1', 'PRIORITY2']               
         menuId:
           description: 'The id value of the `Menu` entity correlated to this `Service` entity.'
           type: string
@@ -3417,12 +3576,18 @@ components:
           description: "If the `polygon` is chosen to be used, `geoRadius` is not required.\n\n\n\nA polygon or multipolygon expressed as a series of three or more space delimited points."
           items:
             allOf:
-              - $ref: '#/components/schemas/Polygon'
+              - $ref: '#/components/schemas/Polygon'             
         geoRadius:
           type: 'object'
           description: 'If the `geoRadius` is chosen to be used, `polygon` is not required. Indicates the approximate radius (in meters) of the CIRCLE area.'
           allOf:
             - $ref: '#/components/schemas/GeoRadius'
+        exclusionAreaPolygon:
+          type: 'array'
+          description: "This object will act as a complement, indicating specific polygons within the previously mapped delivery area, where NO deliveries will be made. \n This field can be filled in regardless of whether `polygon` or `geoRadius` is used."
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ExclusionPolygon'             
 
     Polygon:
       type: 'object'
@@ -3456,6 +3621,30 @@ components:
         estimateDeliveryTime:
           type: 'integer'
           description: 'Estimate delivery time for this polygon in minutes'
+
+    ExclusionPolygon:
+      type: 'object'
+      title: 'Polygon'
+      required: [geoCoordinates]
+      properties:
+        geoCoordinates:
+          type: 'array'
+          description: "Coordinates of each point of the polygon. It is recommended that the first and last points be the same, but it is not required.\n\n\n\nEach point in a polygon or multipolygon is defined by a latitude point followed by a longitude point. You also must specify the points in a counter-clockwise direction."
+          items:
+            type: 'object'
+            title: 'geoCoordinate'
+            required: ['latitude', 'longitude']
+            properties:
+              latitude:
+                type: 'number'
+                format: 'float'
+                description: "Indicates the latitude coordinate of the polygon point.\n\n\n\nLatitude in degrees. Values are restricted to the range [[-90, 90]]."
+                example: -23.54809
+              longitude:
+                type: 'number'
+                format: 'float'
+                description: "Indicates the longitude coordinate of the polygon point.\n\n\n\nLongitude in degrees. Values are restricted to the range [[-180, 180]]."
+                example: -46.63638        
 
     GeoRadius:
       type: 'object'
@@ -3637,9 +3826,22 @@ components:
           example: 'AVAILABLE'
         image:
           type: 'object'
-          description: 'Image of the item'
+          description: |-
+            Image of the item. This field should be used when there is only one image for the item without size variations.  
+            It must **be considered** only if the `images` array **is empty**.  
+            If `images` **contains any value**, this field must **be ignored** even if it is filled.
           allOf:
             - $ref: '#/components/schemas/Image'
+        images:
+           type: 'array'
+           maxItems: 2
+           items:
+             allOf:
+             - $ref: '#/components/schemas/ImageWithType'
+           description: |-
+             Array of images of the item. This field should be used when you need size variations for the images.    
+             If this array **contains any value**, it must **be considered** and the `image` field must be ignored.   
+             If this array is **empty**, the `image` field must be considered.
         nutritionalInfo:
           type: 'object'
           description: 'Nutrition information for the dish.'
@@ -3992,6 +4194,47 @@ components:
           type: integer
           description: 'The maximum number of options which should be selected in the option group.'
           example: 2
+        priceMethod:
+          type: string
+          description: |- 
+            Instructions on how this `optionGroup` should be calculated before being applied to the item.
+
+            **- SUM**: It will be added to the other optionGroups without any additional rules. **Default** option.  
+            **- MAX**: The highest `optionGroup` value between all `optionGroups` with `priceMethod` = `MAX` will be applied to the calculation.  
+            **- AVG**: The average between `optionGroup` with `priceMethod` = `AVG` will be applied to the calculation.  
+
+            Example:   
+              item base price: $25,00
+
+              optionGroup1 - priceMethod = **AVG**
+              - __option 1 = $5,00 (selected)__
+              - option 2 = $10,00 (not selected)
+
+              optionGroup2 - priceMethod = **AVG**
+              - option 1 = $7,00 (not selected)
+              - __option 2 = $10,00 (selected)__
+
+              optionGroup3 - priceMethod = **MAX**
+              - __option 1 = $15,00 (selected)__
+              - option 2 = $20,00 (not selected)
+
+              optionGroup4 - priceMethod = **MAX**
+              - option 1 = $30,00 (not selected)
+              - __option 2 = $35,00 (selected)__
+
+              optionGroup5 - priceMethod = **SUM**
+              - option 1 = $2,00 (not selected)
+              - __option 2 = $3,00 (selected)__
+              - option 3 = $5,00 (not selected)
+
+              **optionsPrice** = avg(optionGroup1, optionGroup2) + max(optionGroup3, optionGroup4) + optionGroup5  
+              **optionsPrice** = 7,50 + 35,00 + 3,00  
+              **optionPrice** = 45,50  
+              **itemPrice** = 25,00 + 45,50 = 70,50  
+          enum: 
+            - SUM
+            - MAX
+            - AVG
         options:
           type: array
           description: 'A list of `Option` entities that correspond to this option group'
@@ -4259,9 +4502,12 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
+            - 'PREPARING'                  
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
+            - 'PICKED_UP'
             - 'DELIVERED'
             - 'CONCLUDED'
             - 'CANCELLATION_REQUESTED'
@@ -4325,9 +4571,12 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
+            - 'PREPARING'            
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
+            - 'PICKED_UP'
             - 'DELIVERED'
             - 'CONCLUDED'
             - 'CANCELLATION_REQUESTED'
@@ -4337,10 +4586,16 @@ components:
             - 'CANCELLED_DENIED'
         orderTiming:
           type: 'string'
-          description: 'Order Timing. Indicates whether the ORDER will have immediate or scheduled delivery.'
+          description: |-
+            Indicates the timing for initiating the order:
+
+            `INSTANT`: for orders that must be prepared immediately.
+            `SCHEDULED`: for orders scheduled for a specific date and time. It will always be accompanied by the `schedule` object.
+            `ONDEMAND`: for orders that will only be delivered when the consumer indicates that they are going to pick it up. In this case, the **Software Service** will receive a `PREPARATION_REQUESTED` event indicating that the order should be started.  
           enum:
             - 'INSTANT'
             - 'SCHEDULED'
+            - 'ONDEMAND'
         preparationStartDateTime:
           type: 'string'
           format: 'date-time'
@@ -4453,16 +4708,39 @@ components:
                     Discounts applied during the order such as coupons and vouchers should not be considered here. These must be reported in the `discounts` object.
                     
                     **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+              scalePriceApplied:
+                type: 'boolean'
+                description: "Indicates whether or not the unit price of the item has changed due to a scaled purchase (where the quantity of items purchased changes the value of the item). Default is `false`"               
               optionsPrice:
                 type: 'object'
                 allOf:
                   - $ref: '#/components/schemas/Price'
                 description: 'The sum of the total prices of all options of the item.'
+              subtotalPrice:
+                type: 'object'
+                description: |- 
+                  This price **is for information purposes only** and should be used to inform the total price for the quantity of items ordered, excluding additional options. **(quantity * unitPrice)**
+
+                    **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                allOf:
+                  - $ref: '#/components/schemas/Price'
               totalPrice:
                 type: 'object'
                 description: Total Price of the item. **(quantity * (unitPrice + optionsPrice))**
                 allOf:
                   - $ref: '#/components/schemas/Price'
+              indoor:
+                type: object
+                description: "Item-related properties for when the order is of type `INDOOR`"
+                properties:
+                  productionPoint:
+                    type: 'string'
+                    description: |-
+                      Production point for this specific item.  
+                      It should be used when the merchant has more than one production point and it is necessary to carry out production at a specific location.
+
+                      Note: The locations must be previously registered in both the **Ordering Application** and the **Software Service**.
+
               options:
                 type: 'array'
                 description: 'The optional extras chosen by the consumer, related to this item.'
@@ -4494,7 +4772,27 @@ components:
                       description: 'External product code.'
                     unit:
                       type: 'string'
-                      description: 'Measure unit of the item.'
+                      description: |
+                        Item's Unit of Measurement.
+      
+                        Possible values:  
+                        - `UN` - Unit  
+                        - `KG` - Kilogram  
+                        - `L` - Liter  
+                        - `OZ` - Ounce  
+                        - `LB` - Pound  
+                        - `GAL` - Gallon  
+      
+                        > Use fractional values for quantities smaller than the unit of measure:
+                        > Example: 500 grams = 0.5 KG
+                      enum:
+                        - 'UN'
+                        - 'KG'
+                        - 'L'
+                        - 'OZ'
+                        - 'LB'
+                        - 'GAL'
+                      example: 'KG'
                     ean:
                       type: 'string'
                       description: 'EAN is the barcode standard used on items.'
@@ -4517,6 +4815,14 @@ components:
                           Discounts applied during the order such as coupons and vouchers should not be considered here. These must be reported in the `discounts` object.
                           
                           **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                    subtotalPrice:
+                      type: 'object'
+                      description: |- 
+                        This price **is for information purposes only** and should be used to inform the total price for the quantity of items ordered, excluding additional options. **(quantity * unitPrice)**
+      
+                          **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
+                      allOf:
+                        - $ref: '#/components/schemas/Price'                          
                     totalPrice:
                       type: 'object'
                       description: Total Price of the option. **(quantity * unitPrice)**
@@ -4591,6 +4897,7 @@ components:
                       enum:
                         - 'MARKETPLACE'
                         - 'MERCHANT'
+                        - 'CHAIN'
                     amount:
                       type: 'object'
                       description: Discount amount given by the sponsor.
@@ -4714,6 +5021,16 @@ components:
                       It can be used to indicate some useful information of the chosen payment method, such as the name of the wallet, or an authorization number.  
 
                       This field can be used for any `method` entered, but it is highly recommended to fill it in when the chosen `method` is `OTHER`.
+                  transaction:
+                    type: object
+                    description: "Authorization details and intermediary identification for credit card and/or subsidy transactions"
+                    properties: 
+                      authorizationCode:
+                        type: string
+                        description: "Credit card and/or subsidy transaction authorization number."
+                      acquirerDocument: 
+                        type: string
+                        description: "Document of the Transaction Intermediary (agency, delivery platform, marketplace, and similar) of services and businesses."
                   changeFor:
                     type: 'number'
                     format: 'decimal'
@@ -4722,6 +5039,17 @@ components:
                       (ex. customer will pay a $43 order with a $50 bill. Then 50.00 must be entered.). 
 
                       Only mandatory when `method` is `CASH`.
+        taxInvoice:
+          type: 'object'
+          description: 'Tax Invoice information.'
+          properties:
+            issued:
+              type: 'boolean'
+              description: 'Inform if a tax invoice has already been issued for this order.'
+              default: false
+            taxInvoiceURL:
+              type: 'string'
+              description: 'The address to download the tax invoice issued.'                    
         customer:
           type: 'object'
           required:
@@ -4770,6 +5098,19 @@ components:
               type: 'string'
               format: date-time
               description: "Date and time for when the order is ready. It can be calculated by the **Ordering Application** using the average preparation time of the dishes. Default is the same time as order creation time. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
+        orderPriority:
+            type: 'string'
+            description: |-
+              Defines the priority of preparation and delivery of this order in relation to other orders from the same **Ordering Application**.  
+              The lower the priority, the faster this order should be fulfilled.
+
+              **Note:** This field depends on both the Ordering Application and the Merchant being able to support this functionality.
+            enum:
+              - 'PRIORITY1'
+              - 'PRIORITY2'
+              - 'PRIORITY3'
+              - 'PRIORITY4'
+              - 'PRIORITY5'
         delivery:
           type: 'object'
           description: "Information for DELIVERY orders. \n\n**REQUIRED** if the chosen `type` is `DELIVERY`"
@@ -4860,6 +5201,12 @@ components:
               type: 'string'
               format: date-time
               description: "Delivery date. The date time that the delivery actually took place. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
+            pickupCode:
+              type: 'string'
+              description: |-
+                It gives the Merchant a code so that the **delivery man** can collect the order.
+
+                Note: Not to be confused with the customer's delivery code.
         takeout:
           type: 'object'
           description: "Information for TAKEOUT orders. \n\n**REQUIRED** if the chosen `type` is `TAKEOUT`"
@@ -4889,10 +5236,13 @@ components:
                 - `PLACE`: Used for orders placed in the **Ordering Application** to be consumed inside the merchant at a specific location already specified, such as a **table** or a **counter**.
                 
                 - `TAB`: Used for establishments that control orders via **tabs** or **control cards** (can be used in conjunction with the place field).
+
+                - `TERMINAL`: Used for orders placed through self-services, such as kiosks, totems or tablets.
               enum:
                 - 'DEFAULT'
                 - 'PLACE'
                 - 'TAB'
+                - 'TERMINAL'
             indoorDateTime:
               type: 'string'
               format: date-time
@@ -4903,6 +5253,21 @@ components:
             tab:
               type: 'string'
               description: 'The tab or control card identifier (Required if mode is `TAB`)'
+            seat:
+                type: 'string'
+                description: 'Optional Identifier of the seat where the customer is located.'
+            waiterCode:
+                type: 'string'
+                description: 'Optional code to identify the waiter responsible for the order.'
+        sendPreparing:
+          type: 'boolean'
+          description: |- 
+            This field indicates whether it is necessary for the `Software Service` to make a request to the [POST /v1/orders/{orderId}/preparing](#operation/orderPreparing) endpoint to indicate to the `Ordering Application` that the order is in production.
+
+            `true`: Indicates that the `Ordering Application` is waiting for a request.
+
+            `false` or `not informed`: It is not required to make a request.                             
+
         sendDelivered:
           type: 'boolean'
           description: |- 
@@ -4911,6 +5276,14 @@ components:
             `true`: Indicates that the `Ordering Application` is waiting for a request.
 
             `false` or `not informed`: It is not required to make a request.    
+        sendPickedUp:
+          type: 'boolean'
+          description: |- 
+            This field indicates whether it is necessary for the `Software Service` to make a request to the [POST /v1/orders/{orderId}/pickedUp](#operation/orderPickedUp) endpoint to indicate to the `Ordering Application` that the order has been picked up by the client.
+
+            `true`: Indicates that the `Ordering Application` is waiting for a request.
+
+            `false` or `not informed`: It is not required to make a request.                      
         sendTracking:
           type: 'boolean'
           description: |- 
@@ -5008,9 +5381,12 @@ components:
         mapping:
           CREATED: '#/components/schemas/EventMetadata'
           CONFIRMED: '#/components/schemas/EventMetadataConfirm'
+          PREPARATION_REQUESTED: '#/components/schemas/EventMetadata'
+          PREPARING: '#/components/schemas/EventMetadata'            
           READY_FOR_PICKUP: '#/components/schemas/EventMetadata'
           DISPATCHED: '#/components/schemas/EventMetadata'
           PICKUP_AREA_ASSIGNED: '#/components/schemas/EventMetadataPickup'
+          PICKED_UP: '#/components/schemas/EventMetadata'
           DELIVERED: '#/components/schemas/EventMetadata'
           CONCLUDED: '#/components/schemas/EventMetadata'
           ORDER_CANCELLATION_REQUEST: '#/components/schemas/EventMetadataCancel'
@@ -5029,9 +5405,12 @@ components:
           enum:
             - 'CREATED'
             - 'CONFIRMED'
+            - 'PREPARATION_REQUESTED'
+            - 'PREPARING'            
             - 'DISPATCHED'
             - 'READY_FOR_PICKUP'
             - 'PICKUP_AREA_ASSIGNED'
+            - 'PICKED_UP'
             - 'DELIVERED'
             - 'CONCLUDED'
             - 'CANCELLATION_REQUESTED'
@@ -5689,7 +6068,7 @@ components:
             "URL pointing to an image of the merchant logo.\n\n Image requirements:
             \n - Hosted on a secure connection (SSL).
             \n - File size must be less than 10MB.
-            \n - Image must be in JPEG, PNG or GIF format.
+            \n - Image must be in JPEG, PNG, GIF or WEBP format.
             \n - Both width and height must be between 320px and 1144px.
             \n\n
             > It is expected that the images referenced in the URL are downloaded from the server that is making the request, because the URL may no longer be valid after a period of time."
@@ -5699,6 +6078,32 @@ components:
           format: 'CRC32'
           description: 'CRC-32 of the image file. This field can be used to check for changes in the image file.'
           example: '96b41025'
+
+    ImageWithType:
+      description: Image Object
+      type: object
+      required: ['URL', 'type']
+      properties:
+        URL:
+          type: 'string'
+          format: 'uri'
+          description:
+            "URL pointing to an image of the merchant logo.\n\n Image requirements:
+            \n - Hosted on a secure connection (SSL).
+            \n - File size must be less than 10MB.
+            \n - Image must be in JPEG, PNG, GIF or WEBP format.
+            \n\n
+            > It is expected that the images referenced in the URL are downloaded from the server that is making the request, because the URL may no longer be valid after a period of time."
+          example: 'https://food-company.com/image.jpg'
+        CRC-32:
+          type: string
+          format: 'CRC32'
+          description: 'CRC-32 of the image file. This field can be used to check for changes in the image file.'
+          example: '96b41025'          
+        type:
+          type: 'string'
+          enum: ['main', 'thumb']
+          description: 'The type of the image. The `main` type is generally used for larger images, such as in the item detail, while the `thumb` type is for smaller images, typically used in the menu listing.'
 
     MerchantAPIInfo:
       type: 'object'
@@ -5870,6 +6275,23 @@ components:
           description: |-
             Number of packages that will be transported in this order. For example, 2 packages, or 3 boxes.  
             > The unit of measure will not be considered, only the quantity.
+        items:
+          type: 'array'
+          description: 'List of items that are part of the delivery.'
+          items:
+            type: 'object'
+            properties:
+              name:
+                type: 'string'
+                description: 'Product name'
+              quantity:
+                type: 'number'
+                format: 'decimal'
+                description: |-
+                  Amount of items.
+
+                    > Use fractional values for quantities smaller than the unit of measure:
+                    > Example: 500 grams = 0.5 KG
         specialInstructions:
           type: string
           description: "Free text to describe special instructions that may apply. These instructions can be used to give some special guidance to the delivery person at the time of the pickup or delivery."
