@@ -1,4 +1,86 @@
 # Changelog
+
+### Version [v1.5.0] - Jan 20, 2025
+
+#### ORDERS changes
+
+- Added two new optional order events:  
+  **PREPARING**: Informs the **Ordering Application** that the order has already begun preparation.  
+  **PICKED_UP**: Informs the **Ordering Application** that the order has been picked up by the customer.  
+
+  With this, the following changes have been made:
+
+  - Added new [POST /v1/orders/{orderId}/preparing](#operation/orderPreparing) endpoint.
+  - Added new [POST /v1/orders/{orderId}/pickedUp](#operation/orderPickedUp) endpoint.  
+  
+  - [GET /events:polling](#operation/pollingEvents) || [POST /events/acknowledgment](#operation/pollingAcknowledgment) || [POST /orderUpdate](#operation/newEvent)
+
+    - added `PREPARING` to the events
+    - added `PICKED_UP` to the events
+
+  - [GET /orders/{orderId}](#operation/ordersDetails)
+    - added `sendPreparing` optional propertie.
+    - added `sendPickedUp` optional propertie.
+
+- Added a new optional order event, called `PREPARATION_REQUESTED`.
+This new event has the purpose of informing the **SOFTWARE SERVICE** to start the preparation of a `ONDEMAND` order. 
+- Added `ONDEMAND` option to the `orderTiming` enum.
+
+- [GET /orders/{orderId}](#operation/ordersDetails)
+
+  - Added `taxInvoice` optional object.
+    This object is optional and can be used by the **Software Service** to know if a invoice has already been issued and the URL to access it.
+
+  - Added `transaction` optional object to the `payments` object.
+    This object contains information about the payment transaction, such as the transaction ID and the acquirer document.
+
+  - Added `orderPriority` optional propertie. 
+    This property is used to indicate to the merchant the priority of preparation of the order in relation to other orders sent by the same Ordering Application.
+
+  - Added `TERMINAL` option to the `indoor.type` enum.
+  - Added `waiterCode` optional propertie to the `indoor` object.
+  - Added `seat` optional propertie to the `indoor` object.
+  - Added `CHAIN` option to the `discounts.sponsorshipValues.name` enum.
+  - Added `subtotalPrice` optional propertie to the `items` and `items.options` objects.
+  - Added `scalePriceApplied` optional propertie to the `items` object.
+  - Added `indoor` optional object to the `items` object.
+
+  - Added `pickupCode` optional propertie to the `delivery` object.
+
+#### MERCHANT changes
+
+- **WEBP** format is now accepted for images.
+
+- [GET /merchant](#operation/getMerchant)
+  - Added `images` propetie in `items` entity
+
+    The `images` propetie is an array that holds images of the item, intended for use when size variations of the image are needed.
+    If the `images` array contains any values, it must be considered, and the preexisting `image` field must be ignored.
+    If the `images` array is empty, the preexisting `image` field must be considered.
+
+    The images in the array must indicate a `type` beetwen `main` or `thumb`.
+
+  - Added `ONDEMAND` option to the `serviceTiming` enum.
+    This propertie allows for the merchant to indicate that the service is available on demand, without a fixed schedule.
+  
+  - Added `exclusionAreaPolygon`to the `serviceArea` object.
+    This propertie allows for the merchant to indicate a polygon area that is not served by the merchant.
+
+  - Added `priceMethod` propertie to the 'optionGroup' object.
+    This propertie allows for the merchant to indicate the price calculation method for multiple options groups on the same item.   
+    
+  - Added `servicePriority` propertie to the `services` object.
+    This propertie allows for the merchant to indicate if the merchant works if order priorities.            
+
+#### LOGISTICS changes
+
+- [POST /logistics/delivery](#operation/logisticsNewDelivery)
+  - Added `items` optional object, to provide more information about the items being delivered.
+
+#### OTHERS changes
+
+- Bug fixes and general corrections in the documentation texts and links.
+
 ### Version [v1.4.0] - Jun 18, 2024
 
 #### SECURITY changes
