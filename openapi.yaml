@@ -6102,8 +6102,8 @@ components:
           example: '96b41025'          
         type:
           type: 'string'
-          enum: ['main', 'thumb']
-          description: 'The type of the image. The `main` type is generally used for larger images, such as in the item detail, while the `thumb` type is for smaller images, typically used in the menu listing.'
+          enum: ['MAIN', 'THUMB']
+          description: 'The type of the image. The `MAIN` type is generally used for larger images, such as in the item detail, while the `THUMB` type is for smaller images, typically used in the menu listing.'
 
     MerchantAPIInfo:
       type: 'object'
