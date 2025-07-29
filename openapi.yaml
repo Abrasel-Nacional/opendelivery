@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API
-  version: 'v1.5.0'
+  version: 'v1.6.0'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -42,82 +42,22 @@ info:
       
       Latest Changes:
 
-      ### Version [v1.5.0] - Jan 20, 2024
+      ### Version [v1.6.0] - Jul 21, 2025
+      This version is a minor release, with the following changes:
 
       #### ORDERS changes
 
-      - Added two new optional order events:  
-        **PREPARING**: Informs the **Ordering Application** that the order has already begun preparation.  
-        **PICKED_UP**: Informs the **Ordering Application** that the order has been picked up by the customer.  
-
-        With this, the following changes have been made:
-
-        - Added new [POST /v1/orders/{orderId}/preparing](#operation/orderPreparing) endpoint.
-        - Added new [POST /v1/orders/{orderId}/pickedUp](#operation/orderPickedUp) endpoint.  
-        
-        - [GET /events:polling](#operation/pollingEvents) || [POST /events/acknowledgment](#operation/pollingAcknowledgment) || [POST /orderUpdate](#operation/newEvent)
-
-          - added `PREPARING` to the events
-          - added `PICKED_UP` to the events
-
-        - [GET /orders/{orderId}](#operation/ordersDetails)
-          - added `sendPreparing` optional propertie.
-          - added `sendPickedUp` optional propertie.
-
-      - Added a new optional order event, called `PREPARATION_REQUESTED`.
-      This new event has the purpose of informing the **SOFTWARE SERVICE** to start the preparation of a `ONDEMAND` order. 
-      - Added `ONDEMAND` option to the `orderTiming` enum.
-
       - [GET /orders/{orderId}](#operation/ordersDetails)
+        - Added `category` property to the order object, which can be used to indicate the category of service the order attends
 
-        - Added `taxInvoice` optional object.
-          This object is optional and can be used by the **Software Service** to know if a invoice has already been issued and the URL to access it.
-
-        - Added `transaction` optional object to the `payments` object.
-          This object contains information about the payment transaction, such as the transaction ID and the acquirer document.
-
-        - Added `orderPriority` optional propertie. 
-          This property is used to indicate to the merchant the priority of preparation of the order in relation to other orders sent by the same Ordering Application.
-
-        - Added `TERMINAL` option to the `indoor.type` enum.
-        - Added `waiterCode` optional propertie to the `indoor` object.
-        - Added `seat` optional propertie to the `indoor` object.
-        - Added `CHAIN` option to the `discounts.sponsorshipValues.name` enum.
-        - Added `subtotalPrice` optional propertie to the `items` and `items.options` objects.
-        - Added `scalePriceApplied` optional propertie to the `items` object.
-        - Added `indoor` optional object to the `items` object.
-
-        - Added `pickupCode` optional propertie to the `delivery` object.
-
-      #### MERCHANT changes
-
-      - **WEBP** format is now accepted for images.
-      
-      - [GET /merchant](#operation/getMerchant)
-        - Added `images` propetie in `items` entity
-
-          The `images` propetie is an array that holds images of the item, intended for use when size variations of the image are needed.
-          If the `images` array contains any values, it must be considered, and the preexisting `image` field must be ignored.
-          If the `images` array is empty, the preexisting `image` field must be considered.
-
-          The images in the array must indicate a `type` beetwen `main` or `thumb`.
-
-        - Added `ONDEMAND` option to the `serviceTiming` enum.
-          This propertie allows for the merchant to indicate that the service is available on demand, without a fixed schedule.
-        
-        - Added `exclusionAreaPolygon`to the `serviceArea` object.
-          This propertie allows for the merchant to indicate a polygon area that is not served by the merchant.
-
-        - Added `priceMethod` propertie to the 'optionGroup' object.
-          This propertie allows for the merchant to indicate the price calculation method for multiple options groups on the same item.   
-          
-        - Added `servicePriority` propertie to the `services` object.
-          This propertie allows for the merchant to indicate if the merchant works if order priorities.            
-
+      - [PATCH /orders/{orderId}/details](#operation/patchOrderDetails)
+        - New endpoint created to allow targeted updates to order properties that do not affect the order status.
+               
       #### LOGISTICS changes
 
       - [POST /logistics/delivery](#operation/logisticsNewDelivery)
-        - Added `items` optional object, to provide more information about the items being delivered.
+        - Added `pickupCode` property, to inform the delivery person of the pickup code required at the merchant.
+        - Added `preparationStartDateTime` property, indicating to the logistics service an estimated time for the start of order preparation.
 
       #### OTHERS changes
 
@@ -166,10 +106,11 @@ info:
 
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
+      - [1.7.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
+      - **v1.6.0 - (LATEST RELEASE)**
+      - [v1.5.0](https://abrasel-nacional.github.io/docs/versions/1.5.0/)  
+      - [v1.4.0](https://abrasel-nacional.github.io/docs/versions/1.4.0/)
 
-      - [1.6.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
-      - **v1.5.0 - (LATEST RELEASE)**
-        [v1.4.0](https://abrasel-nacional.github.io/docs/versions/v1.4.0/)
       - [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
       - [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
       - [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
@@ -238,6 +179,7 @@ info:
     |[POST /orderUpdate (WEBHOOK)](#operation/newEvent)||X||
     |||||
     |[GET /orders/{orderId}](#operation/ordersDetails)|X|||
+    |[PATCH /orders/{orderId}/details](#operation/patchOrderDetails)|X|||
     |[POST /orders/{orderId}/confirm](#operation/confirmOrder)|X|||
     |[POST /orders/{orderId}/preparing](#operation/orderPreparing)|X|||
     |[POST /orders/{orderId}/readyForPickup](#operation/orderReady)|X|||
@@ -1943,7 +1885,56 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-                 
+   
+  /v1/orders/{orderId}/details:
+    patch:
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: 'The unique identifier of the order. The order ID is generated by the **Ordering Application**.'
+      tags:
+        - 'ordersDetails'
+      operationId: 'patchOrderDetails'
+      summary: 'Update Order Details'
+      security:
+        - OAuth2: [od.all]
+      description: |-
+        This is an **OPTIONAL** endpoint that may be used to update order properties that do not affect the order status.
+
+        <br /><br />
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>HOST:</span> **ORDERING APPLICATION**
+
+        <span style='text-decoration:underline; color:#26323880; font-size:13.006px'>DIRECTION:</span>
+        <div align='center'>
+          <img src='https://abrasel-nacional.github.io/docs/versions/rc/images/directionPOSTSS_OA.png' />
+        </div>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preparationStartDateTime:
+                  type: string
+                  format: date-time
+                  description: 'The new preparation time for the order.'
+      responses:
+        "200":
+          description: Preparation time updated successfully.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+          
   /v1/orders/{orderId}/requestCancellation:
     post:
       parameters:
@@ -2885,6 +2876,7 @@ components:
                 - '1.3.1'
                 - '1.4.0'
                 - '1.5.0'
+                - '1.6.0'                
         order:
           type: 'object'
           description: "Information regarding the **Order's** standard endpoints."
@@ -2919,6 +2911,7 @@ components:
                 - '1.3.1'
                 - '1.4.0'
                 - '1.5.0'
+                - '1.6.0'
             availableEventsMethods:
               type: array
               description: 'Lists which methods for obtaining new order events the **Software Service** can use with this **Ordering Application**.'
@@ -3478,6 +3471,7 @@ components:
                   - INSTANT
                   - SCHEDULED
                   - ONDEMAND
+              default: ['INSTANT']    
               example: ['INSTANT', 'SCHEDULED']
             schedule:
               type: 'object'
@@ -3787,7 +3781,7 @@ components:
           type: string
           format: date
           description: 'date'
-          example: '7/4/2021'
+          example: '2021-04-07'
         timePeriods:
           type: 'object'
           description: 'hours'
@@ -3823,6 +3817,7 @@ components:
           enum:
             - AVAILABLE
             - UNAVAILABLE
+          default: 'AVAILABLE'  
           example: 'AVAILABLE'
         image:
           type: 'object'
@@ -4115,6 +4110,7 @@ components:
           enum:
             - AVAILABLE
             - UNAVAILABLE
+          default: 'AVAILABLE'
           example: 'AVAILABLE'
         price:
           type: 'object'
@@ -4235,6 +4231,7 @@ components:
             - SUM
             - MAX
             - AVG
+          default: SUM  
         options:
           type: array
           description: 'A list of `Option` entities that correspond to this option group'
@@ -4268,6 +4265,7 @@ components:
           enum:
             - AVAILABLE
             - UNAVAILABLE
+          default: AVAILABLE  
           example: 'AVAILABLE'
         price:
           type: 'object'
@@ -4292,11 +4290,11 @@ components:
         startDate:
           type: 'string'
           description: 'Availability start date. If not informed, the availabilty is already avaliable.'
-          example: '05/01/2021'
+          example: '2021-05-27'
         endDate:
           type: 'string'
           description: 'Availability end date. If not informed, the availabilty is always avaliable.'
-          example: '05/30/2021'
+          example: '2021-05-30'
         hours:
           type: 'array'
           description: 'Hours'
@@ -4561,6 +4559,18 @@ components:
         virtualBrand:
           type: 'string'
           description: 'This field can be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens). It is important to note that the Ordering Application or Software Hub must know this Id beforehand.'          
+        category:
+          type: string
+          description: |- 
+            Indicates the order category. 
+            
+            > If you find that your order category does not fit any of the listed categories, please open an issue so it can be added.
+          enum:
+            - FOOD
+            - GROCERY
+            - DRUGSTORE
+            - PETSTORE
+          default: FOOD
         createdAt:
           type: 'string'
           format: date-time
@@ -4710,7 +4720,8 @@ components:
                     **THIS PRICE WILL NOT BE CONSIDERED FOR ORDER TOTALS CALCULATIONS.**
               scalePriceApplied:
                 type: 'boolean'
-                description: "Indicates whether or not the unit price of the item has changed due to a scaled purchase (where the quantity of items purchased changes the value of the item). Default is `false`"               
+                description: "Indicates whether or not the unit price of the item has changed due to a scaled purchase (where the quantity of items purchased changes the value of the item). Default is `false`"
+                default: false               
               optionsPrice:
                 type: 'object'
                 allOf:
@@ -6197,6 +6208,9 @@ components:
                 instructions:
                   type: string
                   description: "Any instructions that may help the delivery."
+        pickupCode:
+          type: string
+          description: "Pickup code to be provided to the delivery person for order collection at the merchant. This code may have been generated by the 'Ordering Application' or by the 'Software Service'."
         notifyReadyForPickup:
           type: boolean
           description: "Inform whether the **`Logistic Service`** to wait for a notification that the order was ready for been picked up. This notification happens via the endpoint: [POST /logistics/orderPicked/{orderId}](#operation/logisticsReadyForPicked)"
@@ -6256,6 +6270,12 @@ components:
               type: string
               format: date-time
               description: "The date and time that the Order was created at the **Ordering Application**. \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."
+        preparationStartDateTime:
+          type: 'string'
+          format: 'date-time'
+          description:
+            "Estimated time when the order will start being prepared.
+            \n\n(UTC date-time in ISO timestamp format. See [Guidelines](#section/General-Guidelines) for more info)."      
         totalOrderPrice:
           description: "Total order price that was calculated and displayed for the final consumer in the **`Ordering Application`**. This value may already contain taxes and shipping in addition to the value of the items purchased."
           allOf:

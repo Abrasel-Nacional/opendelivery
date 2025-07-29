@@ -1,4 +1,23 @@
 # Changelog
+### Version [v1.6.0] - Jul 21, 2025
+
+#### ORDERS changes
+
+- [GET /orders/{orderId}](#operation/ordersDetails)
+  - Added `category` property to the order object, which can be used to indicate the category of service the order attends
+
+- [PATCH /orders/{orderId}/details](#operation/patchOrderDetails)
+  - New endpoint created to allow targeted updates to order properties that do not affect the order status.
+          
+#### LOGISTICS changes
+
+- [POST /logistics/delivery](#operation/logisticsNewDelivery)
+  - Added `pickupCode` property, to inform the delivery person of the pickup code required at the merchant.
+  - Added `preparationStartDateTime` property, indicating to the logistics service an estimated time for the start of order preparation.
+
+#### OTHERS changes
+
+- Bug fixes and general corrections in the documentation texts and links.
 
 ### Version [v1.5.0] - Jan 20, 2025
 
