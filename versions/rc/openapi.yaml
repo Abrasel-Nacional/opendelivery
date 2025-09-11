@@ -4949,7 +4949,7 @@ components:
           description: |-
              All the description of the payment, such as methods, pre-payments, change, etc.
 
-             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to `total.orderAmount`. To avoid duplication, do not declare a payment method as a discount as well.Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
+             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to `total.orderAmount`. To avoid duplication, do not declare a payment method as a discount as well. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
 
           properties:
             prepaid:
