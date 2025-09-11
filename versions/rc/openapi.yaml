@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API (Release Candidate)
-  version: 'v1.6.0-rc.2'
+  version: 'v1.7.0-rc.1'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -50,27 +50,7 @@ info:
       
     Latest Changes:
 
-      ### Version [v1.6.0-rc.2] - May 16, 2025
-
-      #### ORDER changes
-
-      - [PATCH /orders/{orderId}/details](#operation/patchOrderDetails)
-        - New endpoint created to allow targeted updates to order properties that do not affect the order status.
-
-      #### LOGISTICS changes
-
-      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
-        - Added `pickupCode` property, to inform the delivery person of the pickup code required at the merchant.
-        - Added `preparationStartDateTime` property, indicating to the logistics service an estimated time for the start of order preparation.
-      
-      ### Version [v1.6.0-rc.1] - Apr 17, 2025
-
-      #### ORDER changes
-
-      - [GET /orders/{orderId}](#operation/ordersDetails)
-        - Added `category` property to the order object, which can be used to indicate the category of service the order attends.
-
-      ### Version [v1.6.0-rc.0] - Feb 13, 2025
+      ### Version [v1.7.0-rc.0] - Jul 22, 2025
 
       - Initial release.
 
@@ -845,10 +825,6 @@ tags:
 
       ### **Ordering Application**
 
-      <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/orderingApp_cancel_request.png" />
-      </div>
-
       Cancellation by **Ordering Application** can happen by:
       ```
       code: CONSUMER_CANCELLATION_REQUESTED
@@ -863,7 +839,19 @@ tags:
 
       Ordering Aplications may cancel the order for reasons other than via customer.
 
+      **Mandatory Cancellation**
+
+      In most situations, the **Ordering Application** may send the order cancellation without giving the **Software Service** the opportunity to accept or deny this cancellation. This is a valid scenario within the standard.
+
+      In these cases, a CANCELLED event will be sent directly to POLLING or WEBHOOK and the **Software Service** must cancel the order.
+
       **Cancellation Handshake**
+
+      In situations where a cancellation handshake is possible, the flow will proceed as follows:
+
+      <div align="center">
+        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/orderingApp_cancel_request.png" />
+      </div>
 
       When the request occurs the merchant **Software Service** will receive an ORDER_CANCELLATION_REQUEST event in polling (or via webhook) and must manifest itself through the following endpoints:
 
@@ -4860,13 +4848,17 @@ components:
                 description: 'Name related to the other fees.'
               type:
                 type: 'string'
+                description: 'Type of fee.'
                 enum:
                   - 'DELIVERY_FEE'
                   - 'SERVICE_FEE'
                   - 'TIP'
               receivedBy:
                 type: 'string'
-                enum:
+                description: |-
+                  Indicates who is the final recipient of the fee amount.  
+                  Example: For a delivery fee, if the delivery is performed by the merchant but the consumer paid directly to the Ordering Application, this field should be set as 'MERCHANT' and not 'MARKETPLACE'.               enum:
+                enum:  
                   - 'MARKETPLACE'
                   - 'MERCHANT'
                   - 'LOGISTIC_SERVICES'
@@ -4883,7 +4875,10 @@ components:
                 description: 'Any extra comments.'
         discounts:
           type: 'array'
-          description: 'Any discounts that may apply.'
+          description: |-
+            Any discounts that may apply.  
+
+            **IMPORTANT: A payment method MUST NOT be used as a discount. Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
           items:
             type: 'object'
             required: ['amount', 'target', 'sponsorshipValues']
@@ -4951,7 +4946,11 @@ components:
         payments:
           type: 'object'
           required: ['prepaid', 'pending', 'methods']
-          description: 'All the description of the payment, such as methods, pre-payments, change, etc.'
+          description: |-
+             All the description of the payment, such as methods, pre-payments, change, etc.
+
+             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to total.orderAmount. To avoid duplication, do not declare a payment method as a discount as well.Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
+
           properties:
             prepaid:
               type: 'number'
