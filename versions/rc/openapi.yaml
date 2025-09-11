@@ -823,6 +823,8 @@ tags:
 
       > **Important**: It is recommended that the **Ordering Application** makes a new request on the [GET /v1/merchant](#operation/getMerchant) endpoint whenever a merchant makes a Cancellation request.
 
+
+
       ### **Ordering Application**
 
       Cancellation by **Ordering Application** can happen by:
@@ -839,12 +841,14 @@ tags:
 
       Ordering Aplications may cancel the order for reasons other than via customer.
 
+        
       **Mandatory Cancellation**
 
       In most situations, the **Ordering Application** may send the order cancellation without giving the **Software Service** the opportunity to accept or deny this cancellation. This is a valid scenario within the standard.
 
-      In these cases, a CANCELLED event will be sent directly to POLLING or WEBHOOK and the **Software Service** must cancel the order.
+      In these cases, a `CANCELLED` event will be sent directly to POLLING or WEBHOOK and the **Software Service** must cancel the order.
 
+        
       **Cancellation Handshake**
 
       In situations where a cancellation handshake is possible, the flow will proceed as follows:
