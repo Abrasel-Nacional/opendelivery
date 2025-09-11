@@ -20,7 +20,7 @@ info:
 
     > **THIS DOCUMENTATION VERSION CONTAINS INFORMATION THAT HAS NOT YET BEEN OFFICIALLY RELEASED AND IS STILL IN RELEASE CANDIDATE STAGE. THE INFORMATION CONTAINED HERE IS STILL UNDERGOING TESTING AND VALIDATION AND MAY BE SUBJECT TO CHANGE (SEE THE [CHANGELOGS](#section/Table-Of-Contents) SECTION FOR THE LATEST CHANGES).**
 
-    > **TO VIEW THE OFFICIAL RELEASE (CURRENTLY VERSION V1.0.1) FOLLOW THIS [LINK](https://abrasel-nacional.github.io/docs/).** 
+    > **TO VIEW THE OFFICIAL RELEASE (CURRENTLY VERSION V1.6.0) FOLLOW THIS [LINK](https://abrasel-nacional.github.io/docs/).** 
 
 
     # └► Introduction
@@ -4949,7 +4949,7 @@ components:
           description: |-
              All the description of the payment, such as methods, pre-payments, change, etc.
 
-             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to total.orderAmount. To avoid duplication, do not declare a payment method as a discount as well.Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
+             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to `total.orderAmount`. To avoid duplication, do not declare a payment method as a discount as well.Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
 
           properties:
             prepaid:
