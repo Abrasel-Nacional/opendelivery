@@ -1354,7 +1354,7 @@ paths:
                           id:
                             type: string
                             description: 'Service id.'
-                          type:
+                          serviceType:
                             type: string
                             description: 'Tipo do serviço.'
                           serviceHours:
