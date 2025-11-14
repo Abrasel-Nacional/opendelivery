@@ -50,6 +50,15 @@ info:
       
     Latest Changes:
 
+      ### Version [v1.7.0-rc.2] - Jul 22, 2025
+      - Changed field name from `sourceAppMerchantId` to `orderingAppMerchantId` in endpoint `GET /v1/merchant/{id}/status` for better clarity.
+      - Added new enum value `MIN_ORDER_FEE` to `otherFees.type` in endpoint `GET /v1/orders/{orderId}` to support minimum order fee charges. This is a complementary fee applied to orders that do not meet the minimum order value requirement.
+      - Added `orderingAppMerchantId` field to the endpoint `PUT /v1/merchantOnboarding` response to provide the internal merchant identifier from the Ordering Application.
+
+      ### Version [v1.7.0-rc.1] - Jul 22, 2025
+
+      - Added endpoint `GET /v1/merchant/{id}/status` to retrieve merchant status, service hours, and orderingAppMerchantId.
+
       ### Version [v1.7.0-rc.0] - Jul 22, 2025
 
       - Initial release.
@@ -1308,7 +1317,7 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
-# Novo endpoint para status do merchant
+
   /v1/merchant/{id}/status:
     get:
       tags:
@@ -1378,7 +1387,7 @@ paths:
                                     type: 'object'
                                     allOf:
                                       - $ref: '#/components/schemas/HolidayHours'
-                    merchantSourceAppId:
+                    orderingAppMerchantId:
                       type: string
                       description: 'Internal merchantId of the merchant in the **Ordering Application**'
         '400':
@@ -4940,11 +4949,18 @@ components:
                 description: 'Name related to the other fees.'
               type:
                 type: 'string'
-                description: 'Type of fee.'
+                description: |-
+                  Type of fee.
+                  
+                  - `DELIVERY_FEE`: Fee charged for delivering the order to the customer's address.
+                  - `SERVICE_FEE`: Fee charged for the service provided by the 'Ordering Application' platform or merchant.
+                  - `TIP`: Gratuity amount given to the delivery person or service staff.
+                  - `MIN_ORDER_FEE`: Additional fee charged when the order value is below the minimum required amount.               
                 enum:
                   - 'DELIVERY_FEE'
                   - 'SERVICE_FEE'
                   - 'TIP'
+                  - 'MIN_ORDER_FEE'
               receivedBy:
                 type: 'string'
                 description: |-
@@ -6234,7 +6250,9 @@ components:
           type: string
           format: 'uri'
           description: "Information about the merchant's **Software Service's** [POST /v1/orderUpdate](#operation/newEvent) webhook access. This is where the **Ordering Application** will sent the order's events to the **Software Service** as they happen."
-
+        orderingAppMerchantId:
+          type: string
+          description: 'Internal merchantId of the merchant in the **Ordering Application**'
     #Logistic
 
     DeliveryOrder:
