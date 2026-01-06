@@ -1,17 +1,36 @@
 # Changelog
+
+### Version [v1.7.0] - Jan 05, 2026
+
+#### ORDERS changes
+
+- [GET /orders/{orderId}](https://abrasel-nacional.github.io/docs/#operation/ordersDetails)
+  - Added new enum value `MIN_ORDER_FEE` to `otherFees.type` in endpoint `GET /v1/orders/{orderId}` to support minimum order fee charges. This is a complementary fee applied to orders that do not meet the minimum order value requirement.
+
+#### MERCHANT changes
+      
+- Added endpoint [GET /merchant/{id}/status](https://abrasel-nacional.github.io/docs/#operation/getMerchantAvailability) to retrieve merchant status, service hours, and orderingAppMerchantId.
+
+- [PUT /merchantOnboarding](https://abrasel-nacional.github.io/docs/#operation/putMerchantOnboarding)
+  - Added `orderingAppMerchantId` field to the response body to provide the internal merchant identifier from the Ordering Application.
+
+#### OTHERS changes
+
+- Bug fixes and general corrections in the documentation texts and links.
+
 ### Version [v1.6.0] - Jul 21, 2025
 
 #### ORDERS changes
 
-- [GET /orders/{orderId}](#operation/ordersDetails)
+- [GET /orders/{orderId}](https://abrasel-nacional.github.io/docs/#operation/ordersDetails)
   - Added `category` property to the order object, which can be used to indicate the category of service the order attends
 
-- [PATCH /orders/{orderId}/details](#operation/patchOrderDetails)
+- [PATCH /orders/{orderId}/details](https://abrasel-nacional.github.io/docs/#operation/patchOrderDetails)
   - New endpoint created to allow targeted updates to order properties that do not affect the order status.
           
 #### LOGISTICS changes
 
-- [POST /logistics/delivery](#operation/logisticsNewDelivery)
+- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/#operation/logisticsNewDelivery)
   - Added `pickupCode` property, to inform the delivery person of the pickup code required at the merchant.
   - Added `preparationStartDateTime` property, indicating to the logistics service an estimated time for the start of order preparation.
 
@@ -29,15 +48,15 @@
 
   With this, the following changes have been made:
 
-  - Added new [POST /v1/orders/{orderId}/preparing](#operation/orderPreparing) endpoint.
-  - Added new [POST /v1/orders/{orderId}/pickedUp](#operation/orderPickedUp) endpoint.  
+  - Added new [POST /v1/orders/{orderId}/preparing](https://abrasel-nacional.github.io/docs/#operation/orderPreparing) endpoint.
+  - Added new [POST /v1/orders/{orderId}/pickedUp](https://abrasel-nacional.github.io/docs/#operation/orderPickedUp) endpoint.  
   
-  - [GET /events:polling](#operation/pollingEvents) || [POST /events/acknowledgment](#operation/pollingAcknowledgment) || [POST /orderUpdate](#operation/newEvent)
+  - [GET /events:polling](https://abrasel-nacional.github.io/docs/#operation/pollingEvents) || [POST /events/acknowledgment](https://abrasel-nacional.github.io/docs/#operation/pollingAcknowledgment) || [POST /orderUpdate](https://abrasel-nacional.github.io/docs/#operation/newEvent)
 
     - added `PREPARING` to the events
     - added `PICKED_UP` to the events
 
-  - [GET /orders/{orderId}](#operation/ordersDetails)
+  - [GET /orders/{orderId}](https://abrasel-nacional.github.io/docs/#operation/ordersDetails)
     - added `sendPreparing` optional propertie.
     - added `sendPickedUp` optional propertie.
 
@@ -45,7 +64,7 @@
 This new event has the purpose of informing the **SOFTWARE SERVICE** to start the preparation of a `ONDEMAND` order. 
 - Added `ONDEMAND` option to the `orderTiming` enum.
 
-- [GET /orders/{orderId}](#operation/ordersDetails)
+- [GET /orders/{orderId}](https://abrasel-nacional.github.io/docs/#operation/ordersDetails)
 
   - Added `taxInvoice` optional object.
     This object is optional and can be used by the **Software Service** to know if a invoice has already been issued and the URL to access it.
@@ -70,7 +89,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 - **WEBP** format is now accepted for images.
 
-- [GET /merchant](#operation/getMerchant)
+- [GET /merchant](https://abrasel-nacional.github.io/docs/#operation/getMerchant)
   - Added `images` propetie in `items` entity
 
     The `images` propetie is an array that holds images of the item, intended for use when size variations of the image are needed.
@@ -93,7 +112,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### LOGISTICS changes
 
-- [POST /logistics/delivery](#operation/logisticsNewDelivery)
+- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/#operation/logisticsNewDelivery)
   - Added `items` optional object, to provide more information about the items being delivered.
 
 #### OTHERS changes
@@ -108,14 +127,14 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### ORDERS changes
 
-- [GET v1/events:polling ](#operation/pollingEvents)
-- [POST /orderUpdate (WEBHOOK)](#operation/newEvent)
-- [GET /v1/orders/{orderId}](#operation/ordersDetails)
+- [GET v1/events:polling ](https://abrasel-nacional.github.io/docs/#operation/pollingEvents)
+- [POST /orderUpdate (WEBHOOK)](https://abrasel-nacional.github.io/docs/#operation/newEvent)
+- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#operation/ordersDetails)
 
   - Added a new optional propertie `virtualBrand`.  
     This should be used as an alternative id for the merchant, in cases where the same merchant has different identifications or brands (such as dark kitchens).
 
-- [POST /v1/orders/{orderId}/validateCode](#operation/orderValidateDelivery)
+- [POST /v1/orders/{orderId}/validateCode](https://abrasel-nacional.github.io/docs/#operation/orderValidateDelivery)
 
   - Added this new endpoint to validate a delivery code provided by the customer.
 
@@ -125,7 +144,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
   - The places in the documentation where the text referenced the `ORDER_CANCELLATION_REQUESTED` enum have been adjusted to `ORDER_CANCELLATION_REQUEST`. This will not affect any implementation.
 
-  - The diagram of the [Order Cancellation section](#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
+  - The diagram of the [Order Cancellation section](https://abrasel-nacional.github.io/docs/#tag/ordersCancellation), where Ordering Application's cancellation is explained, has been updated to better reflect event returns.
 
   - Changed the text in the section on receiving events to indicate that ACKNOLODGMENT is only required for those working via POLLING.
     The text has also been changed to indicate that the Ordering Application can work with either of the two services and that POLLING is not required as a mandatory implementation. (Contrary to what was previously understood.)
@@ -133,19 +152,19 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### LOGISTICS changes
 
-- [POST /v1/logistics/readyForPickup/{orderId}](#operation/logisticsReadyForPickup)
+- [POST /v1/logistics/readyForPickup/{orderId}](https://abrasel-nacional.github.io/docs/#operation/logisticsReadyForPickup)
 
   - Added this new optional endpoint for the MERCHANT to notify the Logistic Service that an order is ready for pickup. 
   
   - Changed the delivery order flow diagram to reflect the new endpoint.
 
-- [POST v1/logistics/delivery](#operation/logisticsNewDelivery)  
+- [POST v1/logistics/delivery](https://abrasel-nacional.github.io/docs/#operation/logisticsNewDelivery)  
 
   - Added a new optional propertie `notifyReadyForPickup` to indicate if the **Logistics Service** must be ready to receive a Ready for Pickup request. 
   - Added a new optional propertie `customerPhoneLocalizer` to indicate the order or customer localizer information to a call center.
   - Added a new optional propertie `confirmationCodeRequired` to indicate whether the **Logistics Service** needs to validate a Delivery Confirmation Code passed by the customer to complete the delivery.
   
-- [POST v1/logistics/confirmationCode (WEBHOOK)](#operation/logistictsDeliveryCode)
+- [POST v1/logistics/confirmationCode (WEBHOOK)](https://abrasel-nacional.github.io/docs/#operation/logistictsDeliveryCode)
   
   - Added this new Webhook for the MERCHANT to receive the Delivery Confirmation Code informed by the customer from the Logistics Service. 
 
@@ -165,7 +184,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### ORDERS changes
 
-- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.3.0/#tag/ordersDetails/operation/ordersDetails)
+- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#tag/ordersDetails/operation/ordersDetails)
 
   - Added a new optional propertie `salesChannel`.  
     This should be used to inform the channel that originated the order.
@@ -181,7 +200,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### LOGISTICS changes
 
-- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/versions/1.3.0/#tag/logisticOrder/operation/logisticsNewDelivery)
+- [POST /logistics/delivery](https://abrasel-nacional.github.io/docs/#tag/logisticOrder/operation/logisticsNewDelivery)
 
   - Fixed the guidance on how to use the combination of orders in a new delivery request.  
     Previously the description was incorrectly quoting the `deliveryId` and `combinedDeliveriesId` fields. This has been corrected to `orderId` and `combinedOrdersId` respectively.  
@@ -218,13 +237,13 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### ORDERS changes
 
-- [POST /orders/{orderId}/tracking](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/ordersTracking/operation/orderTracking)
+- [POST /orders/{orderId}/tracking](https://abrasel-nacional.github.io/docs/#tag/ordersTracking/operation/orderTracking)
 
-  - Added a new endpoint [POST /orders/{orderId}/tracking](#operation/orderTracking) for sending delivery information to the `Ordering Application`.
+  - Added a new endpoint [POST /orders/{orderId}/tracking](https://abrasel-nacional.github.io/docs/#operation/orderTracking) for sending delivery information to the `Ordering Application`.
 
-- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/ordersDetails/operation/ordersDetails)
+- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#tag/ordersDetails/operation/ordersDetails)
 
-  - Added new optional field `sendTracking` to control whether or not the `Software Service` should call the [POST /orders/{orderId}/tracking](#operation/orderTracking) endpoint.
+  - Added new optional field `sendTracking` to control whether or not the `Software Service` should call the [POST /orders/{orderId}/tracking](https://abrasel-nacional.github.io/docs/#operation/orderTracking) endpoint.
   
   - Added a new option to work with **'TABs'** for **INDOOR** orders. This can be used by establishments that control orders via tabs or control cards. As a result, the following changes have been made:
 
@@ -237,35 +256,35 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
   - Removed the requirement to send the `customer.document` propertie
 
-- [POST /v1/orders/{orderId}/dispatch](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/ordersStatus/operation/dispatchOrder)
+- [POST /v1/orders/{orderId}/dispatch](https://abrasel-nacional.github.io/docs/#tag/ordersStatus/operation/dispatchOrder)
 
   - Added new object `deliveryTRackingInfo` to send delivery informations to the `Ordering Application` when dispatching the order
 
-- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/ordersCancellation/operation/requestCancellation)
+- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/#tag/ordersCancellation/operation/requestCancellation)
 
   - Added `DELIVERY_PROBLEM` as a new enum option to the `code` propertie. 
 
-- [GET /v1/events:polling ](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/ordersPolling/operation/pollingEvents)
+- [GET /v1/events:polling ](https://abrasel-nacional.github.io/docs/#tag/ordersPolling/operation/pollingEvents)
 
   - Removed the requirement of the `x-polling-merchants` parameter.
 
 #### LOGISTICS changes
 
-- [POST /v1/logistics/delivery](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/logisticOrder/operation/logisticsNewDelivery)
+- [POST /v1/logistics/delivery](https://abrasel-nacional.github.io/docs/#tag/logisticOrder/operation/logisticsNewDelivery)
 
   - Added a new optional field `orderDeliveryFee` to inform to the `Logistics Service` the customer's paid shipping fee in the `Ordering Application`
 
-- [POST /v1/logistics/availability](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/logisticPrice/operation/logisticsAvailability)
+- [POST /v1/logistics/availability](https://abrasel-nacional.github.io/docs/#tag/logisticPrice/operation/logisticsAvailability)
 
   - Added a new optional field `orderDeliveryFee` to inform to the `Logistics Service` the customer's paid shipping fee in the `Ordering Application`
 
-- [GET /v1/logistics/delivery/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/logisticDetails/operation/logisticDetails)
+- [GET /v1/logistics/delivery/{orderId}](https://abrasel-nacional.github.io/docs/#tag/logisticDetails/operation/logisticDetails)
 
   - Fixed the `problem.actionTaken` propertie type to string instead of boolean
 
 #### SECURITY changes
 
-- [POST /oauth/token](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/authentication/operation/getToken)
+- [POST /oauth/token](https://abrasel-nacional.github.io/docs/#tag/authentication/operation/getToken)
 
   - Fixed the `client_secret` propertie type to string instead of integer
 
@@ -275,7 +294,7 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### MERCHANT changes
 
-- [GET /v1/merchant](https://abrasel-nacional.github.io/docs/versions/1.2.0/#tag/merchantEndpoints/operation/getMerchant)
+- [GET /v1/merchant](https://abrasel-nacional.github.io/docs/#tag/merchantEndpoints/operation/getMerchant)
 
   - Removed the requirement of the `categories.availabilityId` propertie.
 
@@ -289,13 +308,13 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### ORDERS changes:
 
-- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.1.1/#tag/ordersDetails/operation/ordersDetails)
+- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#tag/ordersDetails/operation/ordersDetails)
 
-    - added `sendDelivered` property. This property should have been added together with the [POST /v1/orders/{orderId}/delivered](#operation/orderDelivered) endpoint  
+    - added `sendDelivered` property. This property should have been added together with the [POST /v1/orders/{orderId}/delivered](https://abrasel-nacional.github.io/docs/#operation/orderDelivered) endpoint  
 
-    - added `CANCELLATION_DENIED` to the order events. This event was described in the documentation in the [Orders Cancellation](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersCancellation) section but was not present in the enum.
+    - added `CANCELLATION_DENIED` to the order events. This event was described in the documentation in the [Orders Cancellation](https://abrasel-nacional.github.io/docs/#tag/ordersCancellation) section but was not present in the enum.
 
-- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/versions/1.1.1/#tag/ordersCancellation/operation/requestCancellation)
+- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/#tag/ordersCancellation/operation/requestCancellation)
 
     - fixed the names of the following reasons:
       - `RESTAURANT_WITHOUT_DELIVERY_MAN` to `RESTAURANT_WITHOUT_DELIVERY_PERSON`
@@ -305,23 +324,23 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
 #### MERCHANT changes:
 
-- [GET /v1/merchant](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantEndpoints/operation/getMerchant)
+- [GET /v1/merchant](https://abrasel-nacional.github.io/docs/#tag/merchantEndpoints/operation/getMerchant)
 
   - added new optional propertie `acceptedCards` in the `basicInfo` entity of endpoint.
 
       This field is intended to indicate which card brands are accepted by the merchant.
 
-  - added an enumerator to propertie `unit` in the `items` entity of endpoint [GET /v1/merchant](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantEndpoints/operation/getMerchant).
+  - added an enumerator to propertie `unit` in the `items` entity of endpoint [GET /v1/merchant](https://abrasel-nacional.github.io/docs/#tag/merchantEndpoints/operation/getMerchant).
 
-  - added new optional field `targetAppId` in the `service` entity of endpoint [GET /v1/merchant](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantEndpoints/operation/getMerchant).
+  - added new optional field `targetAppId` in the `service` entity of endpoint [GET /v1/merchant](https://abrasel-nacional.github.io/docs/#tag/merchantEndpoints/operation/getMerchant).
 
       This field is intended to indicate a specific Ordering Application to receive the service information.
 
-- [POST /v1/merchantUpdated](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantUpdate/operation/menuUpdated)
+- [POST /v1/merchantUpdated](https://abrasel-nacional.github.io/docs/#tag/merchantUpdate/operation/menuUpdated)
 
   - added `MERCHANT` and `BASIC_INFO` options to the enumerator of the `entityType` field of the webhook.
 
-    This allows the webhook to now receive the full merchant entity information and can be used instead of the [GET /v1/merchant](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantEndpoints/operation/getMerchant) endpoint.  
+    This allows the webhook to now receive the full merchant entity information and can be used instead of the [GET /v1/merchant](https://abrasel-nacional.github.io/docs/#tag/merchantEndpoints/operation/getMerchant) endpoint.  
     This can be used by **Software Services** that do not have the infrastructure to expose this endpoint.
 
     It is also possible to update any entity that is part of the Merchant object. (this was already possible previously with the exception of BASIC_INFO entity).
@@ -332,14 +351,14 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
   With this, the following changes have been made:
 
-  - [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersDetails/operation/ordersDetails)
+  - [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#tag/ordersDetails/operation/ordersDetails)
     - added `DELIVERED` to the events
 
-  - added new [POST /v1/orders/{orderId}/delivered](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersStatus/operation/orderDelivered) endpoint
+  - added new [POST /v1/orders/{orderId}/delivered](https://abrasel-nacional.github.io/docs/#tag/ordersStatus/operation/orderDelivered) endpoint
 
     This endpoint is intended to indicate to the **Ordering Application** that an order has been delivered.
 
-- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersDetails/operation/ordersDetails)
+- [GET /v1/orders/{orderId}](https://abrasel-nacional.github.io/docs/#tag/ordersDetails/operation/ordersDetails)
 
   - added more options to the enumerator of propertie `unit` in the `items` entity of the endpoint, reflecting the created enum.
 
@@ -349,11 +368,11 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
     This field is intended to indicate the brand of the card (for cases where the chosen payment method has a brand).
 
-- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersCancellation/operation/requestCancellation)
+- [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/#tag/ordersCancellation/operation/requestCancellation)
 
   - added propertie `cancellationStatus` to the 422 response body to indicate the result of the cancellation request in case of a duplicate event.
 
-- [POST /v1/orders/{orderId}/confirm](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/ordersStatus/operation/confirmOrder)
+- [POST /v1/orders/{orderId}/confirm](https://abrasel-nacional.github.io/docs/#tag/ordersStatus/operation/confirmOrder)
 
   - added new optional field `preparationTime` to endpoint .
 
@@ -427,24 +446,24 @@ This new event has the purpose of informing the **SOFTWARE SERVICE** to start th
 
   - Added a new [Working Versions](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/versionsSection) section with endpoints so that both the Software Service and the Ordering Application can check which version of the Open Delivery API the other end is using. The endpoints created were:
 
-    - [GET /v1/versions/orderingApp](https://abrasel-nacional.github.io/docs/versions/1.0.1/#operation/getOrderingAppVersions)
+    - [GET /v1/versions/orderingApp](https://abrasel-nacional.github.io/docs/versions/1.0.1/https://abrasel-nacional.github.io/docs/#operation/getOrderingAppVersions)
     - [GET /v1/versions/merchant](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/merchantEndpoints/operation/getMerchantVersions)
 
   - Added the `status` property to entities `Item`, `ItemOffer` and `Option` on the [GET /merchant](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/merchantEndpoints/operation/getMerchant) endpoint.
 
   - Added HTTP Status code 422 on the following endpoints:
     - [POST /v1/orders/{orderId}/confirm](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/operation/confirmOrder)
-    - [POST /v1/orders/{orderId}/readyForPickup](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/orderReady)
-    - [POST /v1/orders/{orderId}/dispatch](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/dispatchOrder)
-    - [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/requestCancellation)
-    - [POST /v1/orders/{orderId}/acceptCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/cancellationAccepted)
-    - [POST /v1/orders/{orderId}/denyCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/cancellationDenied)
+    - [POST /v1/orders/{orderId}/readyForPickup](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/orderReady)
+    - [POST /v1/orders/{orderId}/dispatch](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/dispatchOrder)
+    - [POST /v1/orders/{orderId}/requestCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/requestCancellation)
+    - [POST /v1/orders/{orderId}/acceptCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/cancellationAccepted)
+    - [POST /v1/orders/{orderId}/denyCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/cancellationDenied)
 
   - Added HTTP Status code 204 on the following endpoints:
-    - [POST /v1/merchantUpdated](https://abrasel-nacional.github.io/docs/versions/1.1.0/#tag/merchantUpdate/operation/menuUpdated)
+    - [POST /v1/merchantUpdated](https://abrasel-nacional.github.io/docs/#tag/merchantUpdate/operation/menuUpdated)
     - [POST /v1/orderUpdate](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersWebhook/operation/newEvent)
-    - [POST /v1/orders/{orderId}/acceptCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/cancellationAccepted)
-    - [POST /v1/orders/{orderId}/denyCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/#operation/cancellationDenied)
+    - [POST /v1/orders/{orderId}/acceptCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/cancellationAccepted)
+    - [POST /v1/orders/{orderId}/denyCancellation](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/ordersStatus/https://abrasel-nacional.github.io/docs/#operation/cancellationDenied)
 
   - Removed the **requirement** of the fields:
     - [GET /merchant](https://abrasel-nacional.github.io/docs/versions/1.0.1/#tag/merchantEndpoints/operation/getMerchant)

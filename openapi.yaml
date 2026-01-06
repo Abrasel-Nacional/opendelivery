@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Open Delivery API
-  version: 'v1.6.0'
+  version: 'v1.7.0'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
@@ -42,22 +42,20 @@ info:
       
       Latest Changes:
 
-      ### Version [v1.6.0] - Jul 21, 2025
+      ### Version [v1.7.0] - Jan 05, 2026
       This version is a minor release, with the following changes:
 
       #### ORDERS changes
 
       - [GET /orders/{orderId}](#operation/ordersDetails)
-        - Added `category` property to the order object, which can be used to indicate the category of service the order attends
+        - Added new enum value `MIN_ORDER_FEE` to `otherFees.type` in endpoint `GET /v1/orders/{orderId}` to support minimum order fee charges. This is a complementary fee applied to orders that do not meet the minimum order value requirement.
 
-      - [PATCH /orders/{orderId}/details](#operation/patchOrderDetails)
-        - New endpoint created to allow targeted updates to order properties that do not affect the order status.
-               
-      #### LOGISTICS changes
+      #### MERCHANT changes
+            
+      - Added endpoint `GET /v1/merchant/{id}/status` to retrieve merchant status, service hours, and orderingAppMerchantId.
 
-      - [POST /logistics/delivery](#operation/logisticsNewDelivery)
-        - Added `pickupCode` property, to inform the delivery person of the pickup code required at the merchant.
-        - Added `preparationStartDateTime` property, indicating to the logistics service an estimated time for the start of order preparation.
+      - [PUT /merchantOnboarding](#operation/putMerchantOnboarding)
+        - Added `orderingAppMerchantId` field to the response body to provide the internal merchant identifier from the Ordering Application.
 
       #### OTHERS changes
 
@@ -106,8 +104,9 @@ info:
 
       Contains the standards already published:  
       **MERCHANT** | **ORDERS** | **LOGISTICS**
-      - [1.7.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
-      - **v1.6.0 - (LATEST RELEASE)**
+      - [2.0.0-rc.X (Release Candidate*)](https://abrasel-nacional.github.io/docs/versions/rc/)
+      - **v1.7.0 - (LATEST RELEASE)**
+      - [v1.5.0](https://abrasel-nacional.github.io/docs/versions/1.6.0/)  
       - [v1.5.0](https://abrasel-nacional.github.io/docs/versions/1.5.0/)  
       - [v1.4.0](https://abrasel-nacional.github.io/docs/versions/1.4.0/)
 
@@ -838,10 +837,6 @@ tags:
 
       ### **Ordering Application**
 
-      <div align="center">
-        <img src="https://abrasel-nacional.github.io/docs/images/orderingApp_cancel_request.png" />
-      </div>
-
       Cancellation by **Ordering Application** can happen by:
       ```
       code: CONSUMER_CANCELLATION_REQUESTED
@@ -856,7 +851,21 @@ tags:
 
       Ordering Aplications may cancel the order for reasons other than via customer.
 
+        
+      **Mandatory Cancellation**
+
+      In most situations, the **Ordering Application** may send the order cancellation without giving the **Software Service** the opportunity to accept or deny this cancellation. This is a valid scenario within the standard.
+
+      In these cases, a `CANCELLED` event will be sent directly to POLLING or WEBHOOK and the **Software Service** must cancel the order.
+
+        
       **Cancellation Handshake**
+
+      In situations where a cancellation handshake is possible, the flow will proceed as follows:
+
+      <div align="center">
+        <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/orderingApp_cancel_request.png" />
+      </div>
 
       When the request occurs the merchant **Software Service** will receive an ORDER_CANCELLATION_REQUEST event in polling (or via webhook) and must manifest itself through the following endpoints:
 
@@ -1224,13 +1233,16 @@ paths:
             example: '22815773000169-dbc7e35a-c936-4665-9e13-eb55eb8b6824'
           
       tags:
-        - 'merchantStatus'
+        - 'merchantUpdate'
       operationId: 'getMerchantStatus'
-      summary: 'Health Check on a Merchant'
+      summary: 'Check Merchant Update Processing Result'
       security:
         - OAuth2: [od.all]
       description: |-
-        Get specific merchant info reading status provided by the **Ordering Application**.
+        Returns the result of the merchant update processing, whether triggered by a direct GET /merchant request or by receiving a merchant update via webhook.
+
+        Use this endpoint to verify the status and outcome of the last merchant update attempt, including success, failure, or processing state.
+
         <br /><br />
         <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **ORDERING APPLICATION**
 
@@ -1240,7 +1252,7 @@ paths:
         </div>
       responses:
         '200':
-          description: 'Successful returns Merchant Status information.'
+          description: 'Returns the status and result of the last merchant update processing (GET /merchant or webhook).'
           content:
             'application/json':
               schema:
@@ -1305,6 +1317,91 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
+
+  /v1/merchant/{id}/status:
+    get:
+      tags:
+        - 'merchantStatus'
+      operationId: 'getMerchantAvailability'
+      security:
+        - OAuth2: [od.all]
+      summary: 'Get Merchant Status and Service Hours'
+      description: |-
+        Returns the merchant status, service hours (serviceHours), and sourceAppId.
+        <br /><br />
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">HOST:</span> **SOFTWARE SERVICE**
+
+        <span style="text-decoration:underline; color:#26323880; font-size:13.006px">DIRECTION:</span>
+        <div align="center">
+          <img src="https://abrasel-nacional.github.io/docs/versions/rc/images/directionGETSS_OA.png" />
+        </div>
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            description: 'Merchant Id.'
+      responses:
+        '200':
+          description: 'Successfully returns Merchant status, services and sourceAppId.'
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      description: 'Merchant status.'
+                      enum: [AVAILABLE, UNAVAILABLE]
+                    services:
+                      type: array
+                      description: 'Array de serviços do merchant.'
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: 'Service id.'
+                          serviceType:
+                            type: string
+                            description: 'Tipo do serviço.'
+                          serviceHours:
+                            type: array
+                            description: 'Array de horários de serviço.'
+                            items:
+                              type: 'object'
+                              title: 'Service Hours'
+                              properties:
+                                weekHours:
+                                  type: array
+                                  description: 'A list of the day(s) of the week and time periods for which the service is valid.'
+                                  items:
+                                    type: 'object'
+                                    allOf:
+                                      - $ref: '#/components/schemas/Hours'
+                                holidayHours:
+                                  type: array
+                                  description: 'Map of holiday dates, each with optional `timePeriods`. If a date does not have a time period specified, the restaurant will be closed for that date.'
+                                  items:
+                                    type: 'object'
+                                    allOf:
+                                      - $ref: '#/components/schemas/HolidayHours'
+                    orderingAppMerchantId:
+                      type: string
+                      description: 'Internal merchantId of the merchant in the **Ordering Application**'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'   
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
 
   # Orders
 
@@ -3780,8 +3877,8 @@ components:
         date:
           type: string
           format: date
-          description: 'date'
-          example: '2021-04-07'
+          description: 'date in UTC (RFC3339 format, e.g. 2021-07-04)'
+          example: '2021-07-04'
         timePeriods:
           type: 'object'
           description: 'hours'
@@ -4854,13 +4951,24 @@ components:
                 description: 'Name related to the other fees.'
               type:
                 type: 'string'
+                description: |-
+                  Type of fee.
+                  
+                  - `DELIVERY_FEE`: Fee charged for delivering the order to the customer's address.
+                  - `SERVICE_FEE`: Fee charged for the service provided by the 'Ordering Application' platform or merchant.
+                  - `TIP`: Gratuity amount given to the delivery person or service staff.
+                  - `MIN_ORDER_FEE`: Additional fee charged when the order value is below the minimum required amount.               
                 enum:
                   - 'DELIVERY_FEE'
                   - 'SERVICE_FEE'
                   - 'TIP'
+                  - 'MIN_ORDER_FEE'
               receivedBy:
                 type: 'string'
-                enum:
+                description: |-
+                  Indicates who is the final recipient of the fee amount.  
+                  Example: For a delivery fee, if the delivery is performed by the merchant but the consumer paid directly to the Ordering Application, this field should be set as 'MERCHANT' and not 'MARKETPLACE'.               enum:
+                enum:  
                   - 'MARKETPLACE'
                   - 'MERCHANT'
                   - 'LOGISTIC_SERVICES'
@@ -4877,7 +4985,10 @@ components:
                 description: 'Any extra comments.'
         discounts:
           type: 'array'
-          description: 'Any discounts that may apply.'
+          description: |-
+            Any discounts that may apply.  
+
+            **IMPORTANT: A payment method MUST NOT be used as a discount. Discounts are amounts that subtract a portion of the final order value. To avoid duplication, if a value is declared in this object it MUST NOT be declared in the `payments` object.**
           items:
             type: 'object'
             required: ['amount', 'target', 'sponsorshipValues']
@@ -4945,7 +5056,11 @@ components:
         payments:
           type: 'object'
           required: ['prepaid', 'pending', 'methods']
-          description: 'All the description of the payment, such as methods, pre-payments, change, etc.'
+          description: |-
+             All the description of the payment, such as methods, pre-payments, change, etc.
+
+             **IMPORTANT: A discount MUST NOT be used as a payment method. It is important that the sum of all values declared as payment methods is exactly equal to `total.orderAmount`. To avoid duplication, do not declare a payment method as a discount as well.**
+
           properties:
             prepaid:
               type: 'number'
@@ -6114,7 +6229,7 @@ components:
         type:
           type: 'string'
           enum: ['MAIN', 'THUMB']
-          description: 'The type of the image. The `MAIN` type is generally used for larger images, such as in the item detail, while the `THUMB` type is for smaller images, typically used in the menu listing.'
+          description: 'The type of the image. The `main` type is generally used for larger images, such as in the item detail, while the `thumb` type is for smaller images, typically used in the menu listing.'
 
     MerchantAPIInfo:
       type: 'object'
@@ -6137,7 +6252,9 @@ components:
           type: string
           format: 'uri'
           description: "Information about the merchant's **Software Service's** [POST /v1/orderUpdate](#operation/newEvent) webhook access. This is where the **Ordering Application** will sent the order's events to the **Software Service** as they happen."
-
+        orderingAppMerchantId:
+          type: string
+          description: 'Internal merchantId of the merchant in the **Ordering Application**'
     #Logistic
 
     DeliveryOrder:

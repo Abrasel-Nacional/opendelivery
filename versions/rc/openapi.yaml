@@ -4385,11 +4385,11 @@ components:
         startDate:
           type: 'string'
           description: 'Availability start date. If not informed, the availabilty is already avaliable.'
-          example: '05/01/2021'
+          example: '2021-05-27'
         endDate:
           type: 'string'
           description: 'Availability end date. If not informed, the availabilty is always avaliable.'
-          example: '05/30/2021'
+          example: '2021-05-30'
         hours:
           type: 'array'
           description: 'Hours'
@@ -6226,7 +6226,7 @@ components:
           example: '96b41025'          
         type:
           type: 'string'
-          enum: ['main', 'thumb']
+          enum: ['MAIN', 'THUMB']
           description: 'The type of the image. The `main` type is generally used for larger images, such as in the item detail, while the `thumb` type is for smaller images, typically used in the menu listing.'
 
     MerchantAPIInfo:
