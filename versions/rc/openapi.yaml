@@ -50,7 +50,7 @@ info:
       
     Latest Changes:
 
-      ### Version [v1.7.0-rc.2] - Jul 22, 2025
+      ### Version [v1.7.0-rc.2] - Nov 13, 2025
       - Changed field name from `sourceAppMerchantId` to `orderingAppMerchantId` in endpoint `GET /v1/merchant/{id}/status` for better clarity.
       - Added new enum value `MIN_ORDER_FEE` to `otherFees.type` in endpoint `GET /v1/orders/{orderId}` to support minimum order fee charges. This is a complementary fee applied to orders that do not meet the minimum order value requirement.
       - Added `orderingAppMerchantId` field to the endpoint `PUT /v1/merchantOnboarding` response to provide the internal merchant identifier from the Ordering Application.
