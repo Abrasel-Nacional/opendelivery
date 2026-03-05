@@ -3,7 +3,7 @@
 </p>
 <p align="center">
   <img src="https://img.shields.io/github/v/release/Abrasel-Nacional/docs?display_name=release" />
-  <a href="http://online.swagger.io/validator?url=https://abrasel-nacional.github.io/docs/openapi.yaml">
+  <a href="http://online.swagger.io/validator?url=https://abrasel-nacional.github.io/opendelivery/openapi.yaml">
    <img src="https://img.shields.io/badge/OpenAPI-valid-brightgreen.svg" />
   </a>
   <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" />
@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/github/issues-closed-raw/Abrasel-NAcional/docs?color=green" />
 </p>
 
-# [Open Delivery API Specification](https://abrasel-nacional.github.io/docs/)
+# [Open Delivery API Specification](https://abrasel-nacional.github.io/opendelivery/)
 
  
  The present repository defines the OpenAPI 3.0.3 functional specifications for the Open Delivery API.
@@ -27,18 +27,18 @@ Thus, menus and orders are standardized and customer requests are received in a 
 Contains the specifications of the standards already published:  
 **MERCHANT** | **ORDERS** | **LOGISTICS**
 
-**[LATEST RELEASE - v1.4.0](https://abrasel-nacional.github.io/docs/)**
+**[LATEST RELEASE - v1.4.0](https://abrasel-nacional.github.io/opendelivery/)**
 
 All Versions: 
 
 - **v1.4.0 - (LATEST RELEASE)**
-- [v1.3.0](https://abrasel-nacional.github.io/docs/versions/1.3.0/)
-- [v1.2.1](https://abrasel-nacional.github.io/docs/versions/1.2.1/)
-- [v1.2.0](https://abrasel-nacional.github.io/docs/versions/1.2.0/)
-- [v1.1.1](https://abrasel-nacional.github.io/docs/versions/1.1.1/)
-- [v1.1.0](https://abrasel-nacional.github.io/docs/versions/1.1.0/)
-- [v1.0.1](https://abrasel-nacional.github.io/docs/versions/1.0.1/)
-- [v1.0.0](https://abrasel-nacional.github.io/docs/versions/1.0.0/)
+- [v1.3.0](https://abrasel-nacional.github.io/opendelivery/versions/1.3.0/)
+- [v1.2.1](https://abrasel-nacional.github.io/opendelivery/versions/1.2.1/)
+- [v1.2.0](https://abrasel-nacional.github.io/opendelivery/versions/1.2.0/)
+- [v1.1.1](https://abrasel-nacional.github.io/opendelivery/versions/1.1.1/)
+- [v1.1.0](https://abrasel-nacional.github.io/opendelivery/versions/1.1.0/)
+- [v1.0.1](https://abrasel-nacional.github.io/opendelivery/versions/1.0.1/)
+- [v1.0.0](https://abrasel-nacional.github.io/opendelivery/versions/1.0.0/)
 
 
 >  *Release Candidate versions contains the evolutions and improvements being discussed at the moment and that will be part of the release version in the future.
@@ -48,11 +48,11 @@ All Versions:
 Contains the standards still in tests:  
 **FINANCIAL RECONCILIATION** | **CONTRACTS**
 
-- [BETA VERSION](https://abrasel-nacional.github.io/docs/versions/beta/)
+- [BETA VERSION](https://abrasel-nacional.github.io/opendelivery/versions/beta/)
 
 ## Changelog
 
-[See the Latest Changes here.](https://github.com/Abrasel-Nacional/docs/blob/gh-pages/CHANGELOG.md)
+[See the Latest Changes here.](https://github.com/Abrasel-Nacional/opendelivery/blob/gh-pages/CHANGELOG.md)
 
 ## Issues and Suggestions
 
