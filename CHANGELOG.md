@@ -1,5 +1,12 @@
 # Changelog
 
+### Version [v1.7.1] - Aug 03, 2026
+
+#### ORDERS changes
+
+- [GET /orders/{orderId}](https://abrasel-nacional.github.io/opendelivery/#operation/ordersDetails)
+  - Added new optional field `billingAddress` to the `takeout` object within the Order schema. This is the customer's billing address, added to comply with fiscal regulation (Ajuste SINIEF nº 9/2026) that requires billing address information for TAKEOUT order types to enable NFC-e issuance.
+
 ### Version [v1.7.0] - Jan 05, 2026
 
 #### ORDERS changes
