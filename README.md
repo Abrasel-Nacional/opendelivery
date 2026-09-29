@@ -27,11 +27,14 @@ Thus, menus and orders are standardized and customer requests are received in a 
 Contains the specifications of the standards already published:  
 **MERCHANT** | **ORDERS** | **LOGISTICS**
 
-**[LATEST RELEASE - v1.4.0](https://abrasel-nacional.github.io/opendelivery/)**
+**[LATEST RELEASE - v1.7.1](https://abrasel-nacional.github.io/opendelivery/)**
 
 All Versions: 
 
-- **v1.4.0 - (LATEST RELEASE)**
+- **v1.7.1 - (LATEST RELEASE)**
+- [v1.6.0](https://abrasel-nacional.github.io/opendelivery/versions/1.6.0/)
+- [v1.5.0](https://abrasel-nacional.github.io/opendelivery/versions/1.5.0/)
+- [v1.4.0](https://abrasel-nacional.github.io/opendelivery/versions/1.4.0/)
 - [v1.3.0](https://abrasel-nacional.github.io/opendelivery/versions/1.3.0/)
 - [v1.2.1](https://abrasel-nacional.github.io/opendelivery/versions/1.2.1/)
 - [v1.2.0](https://abrasel-nacional.github.io/opendelivery/versions/1.2.0/)
